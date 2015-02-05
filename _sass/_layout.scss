@@ -10,6 +10,17 @@
     position: relative;
 }
 
+// Particles stuff
+canvas {
+  display: block;
+  vertical-align: bottom;
+}
+
+#particles-js {
+  height: 100%;
+  background: #b61924;
+}
+
 .site-title {
     font-size: 26px;
     line-height: 56px;
