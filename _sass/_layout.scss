@@ -5,6 +5,8 @@
     border-top: 5px solid $grey-color-dark;
     border-bottom: 1px solid $grey-color-light;
     min-height: 56px;
+    padding-right: $spacing-unit;
+    padding-left: $spacing-unit;
 
     // Positioning context for the mobile navigation icon
     position: relative;
@@ -105,6 +107,8 @@ canvas {
 .site-footer {
     border-top: 1px solid $grey-color-light;
     padding: $spacing-unit 0;
+    padding-right: $spacing-unit;
+    padding-left: $spacing-unit;
 }
 
 .footer-heading {
