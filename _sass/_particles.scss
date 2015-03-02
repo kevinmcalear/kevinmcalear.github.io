@@ -3,14 +3,28 @@ canvas {
   display: block;
   vertical-align: bottom;
   opacity:.6;
-
-
 }
 
 #particles-js {
   height: 100%;
-  background: #0A0313;
+  background-color: #0A0313;
+  transition: all 1.5s ease;
+}
 
+.designer {
+  background-color: #420F2E !important;
+}
+
+.developer {
+  background-color: #0F2342 !important;
+}
+
+.data-scientist {
+  background-color: #280F42 !important;
+}
+
+.intro {
+  background-color: #0A0313 !important;
 }
 
 // Pannel
