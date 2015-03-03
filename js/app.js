@@ -155,7 +155,7 @@ theater
   .write(-10)
   .write(dataScientist, " data scientist.", 800)
   .write(intro,"Kevin:Welcome to my site.", 1600)
-  .write("Kevin:Explore away.", 1000);
+  .write("Kevin:Explore away.", 1000, addButton);
   // .write(function () { theater.play(true); });
 
 
@@ -174,4 +174,15 @@ function dataScientist () {
 
 function intro () {
   document.getElementById('particles-js').className = "intro";
+}
+
+function explore () {
+  var node = document.createElement("BUTTON");
+  var textnode = document.createTextNode("See More");
+  node.appendChild(textnode);
+  document.getElementById("my-pannel").appendChild(node);
+}
+
+function addButton () {
+  document.getElementById("explore-button").className = "button button--nanuk button--round-l button--text-thick button--inverted";
 }
