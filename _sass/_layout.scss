@@ -23,6 +23,26 @@ canvas {
   background: #b61924;
 }
 
+.menu-icon {
+    display: block;
+    float: right;
+    width: 36px;
+    height: 26px;
+    line-height: 0;
+    padding-top: 10px;
+    text-align: center;
+
+    > svg {
+        width: 18px;
+        height: 15px;
+
+        path {
+            fill: $grey-color-dark;
+        }
+    }
+}
+
+
 .site-title {
     font-size: 26px;
     line-height: 56px;
