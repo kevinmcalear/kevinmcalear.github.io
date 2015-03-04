@@ -5,14 +5,15 @@
 
   <body>
 
-    {% include header.html %}
-    <div id="perspective" class="perspective effect-airbnb">
+    <!-- {% include header.html %} -->
+    <div id="perspective" class="perspective effect-moveleft">
       <div class="container">
         <div class="wrapper"><!-- wrapper needed for scroll -->
           {{ content }}
         </div>
       </div>
     </div>
+    {% include menu.html %}
     {% include footer.html %}
     {% include scripts.html %}
   </body>
