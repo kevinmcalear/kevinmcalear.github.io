@@ -21,6 +21,9 @@ canvas {
 #particles-js {
   height: 100%;
   background: #b61924;
+  @include media-query($on-palm) {
+    height: 500px !important;
+  }
 }
 
 .menu-icon {

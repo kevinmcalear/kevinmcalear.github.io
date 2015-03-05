@@ -236,7 +236,7 @@ function pJS_mobile(){
       }
     },
     interactivity: {
-      enable: false,
+      enable: true,
       mouse: {
         distance: 200
       },
