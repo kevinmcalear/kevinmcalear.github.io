@@ -24,7 +24,7 @@ function loadXMLDoc() {
                var musicList = document.getElementById("music")
                var songList = JSON.parse(xmlhttp.responseText);
                for(var index in songList) {
-                  if ( songList[index] ) {
+                  if ( songList[index]["posturl"] ) {
                     var song = songList[index];
                     var image = img_create(song["thumb_url_large"]);
                     var a = document.createElement('a');
@@ -53,4 +53,6 @@ function loadXMLDoc() {
     xmlhttp.send();
 }
 
-loadXMLDoc();
+(function(){
+  loadXMLDoc();
+})();
