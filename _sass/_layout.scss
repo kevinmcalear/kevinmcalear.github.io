@@ -147,9 +147,11 @@ canvas {
  */
 .site-footer {
     border-top: 1px solid $grey-color-light;
-    padding: $spacing-unit 0;
+    padding: 0;
+    padding-top: 20px;
     padding-right: $spacing-unit;
     padding-left: $spacing-unit;
+    background: #ebebeb;
 }
 
 .footer-heading {
