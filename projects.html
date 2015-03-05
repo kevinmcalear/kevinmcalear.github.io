@@ -1,7 +1,25 @@
 ---
-layout: page
+layout: default
 title: Projects
 permalink: /projects/
 ---
 
-<div id="music"></div>
+<div class="home">
+
+  <h1 class="page-heading">projects</h1>
+
+  <ul class="post-list">
+    {% for project in site.projects %}
+      <li>
+        <span class="project-meta">{{ project.date | date: "%b %-d, %Y" }}</span>
+
+        <h2>
+          <a class="project-link" href="{{ project.url | prepend: site.baseurl }}">{{ project.title }}</a>
+        </h2>
+      </li>
+    {% endfor %}
+  </ul>
+
+  <p class="rss-subscribe">subscribe <a href="{{ "/feed.xml" | prepend: site.baseurl }}">via RSS</a></p>
+
+</div>
