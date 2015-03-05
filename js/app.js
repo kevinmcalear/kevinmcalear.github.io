@@ -223,7 +223,7 @@ function pJS_mobile(){
         distance: 250,
         color: '#fff',
         opacity: 0.5,
-        width: 1,
+        width: 0.5,
         condensed_mode: {
             enable: false,
             rotateX: 600,
