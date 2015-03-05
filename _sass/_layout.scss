@@ -47,14 +47,20 @@ canvas {
 
     &:hover {
         > svg path {
+
             fill: rgba(32, 44, 69, 0.73);
         }
     }
     > svg {
+
         width: 25px;
         height: 25px;
 
         path {
+            -webkit-transition: all 1s ease-in-out;
+            -moz-transition: all 1s ease-in-out;
+            -o-transition: all 1s ease-in-out;
+            transition: all 1s ease-in-out;
             fill: $grey-color-dark;
             fill: #202C45;
 
@@ -176,6 +182,11 @@ canvas {
     float: left;
     margin-bottom: $spacing-unit / 2;
     padding-left: $spacing-unit / 2;
+    .text {
+        width: 89%;
+        display: inline-block;
+        margin-left: 1%;
+    }
 }
 
 .footer-col-1 {

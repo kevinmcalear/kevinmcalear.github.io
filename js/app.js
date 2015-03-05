@@ -354,59 +354,60 @@ function pJS_tri(){
 }
 
 /* LAUNCH */
+if (document.getElementById("my-welcome")){
 
-if(window.innerWidth > 1100){
-  pJS_desktop();
-}else{
-  pJS_mobile();
-}
-
-/* on resize */
-
-window.addEventListener('resize', function() {
-  checkOnResize();
-}, true);
-
-function checkOnResize(){
   if(window.innerWidth > 1100){
-    if(pJS.particles.nb != 150){
-      console.log('desktop mode')
-      pJS.fn.vendors.destroy();
-      pJS_desktop();
-    }
+    pJS_desktop();
   }else{
-    if(pJS.particles.nb == 150){
-      console.log('mobile mode');
-      pJS.fn.vendors.destroy();
-      pJS_mobile();
+    pJS_mobile();
+  }
+
+  /* on resize */
+
+  window.addEventListener('resize', function() {
+    checkOnResize();
+  }, true);
+
+  function checkOnResize(){
+    if(window.innerWidth > 1100){
+      if(pJS.particles.nb != 150){
+        console.log('desktop mode')
+        pJS.fn.vendors.destroy();
+        pJS_desktop();
+      }
+    }else{
+      if(pJS.particles.nb == 150){
+        console.log('mobile mode');
+        pJS.fn.vendors.destroy();
+        pJS_mobile();
+      }
     }
   }
+
+
+  // Create a new instance of TheaterJS with defaults options.
+  var theater = new TheaterJS();
+
+  // First, describe actors by passing a name,
+  // an experience and finally a selector string.
+  theater
+    .describe("Kevin", { speed: .8, accuracy: .6, invincibility: 4 }, "#my-welcome")
+
+  theater
+    .write("Kevin:Hello.")
+    .write(500)
+    .write("Kevin:My Name is Kevin.")
+    .write(500)
+    .write("Kevin:I love", 600, developer, " programming.", 1000)
+    .write(-13)
+    .write(designer, " design.", 1000)
+    .write(-8)
+    .write(dataScientist, " data science.", 1000)
+    // .write("Kevin:and a lot of other things...", 800)
+    .write(intro,"Kevin:Welcome to my site.", 1000, addButton);
+    // .write("Kevin:Explore away.", 1000, addButton);
+    // .write(function () { theater.play(true); });
 }
-
-
-// Create a new instance of TheaterJS with defaults options.
-var theater = new TheaterJS();
-
-// First, describe actors by passing a name,
-// an experience and finally a selector string.
-theater
-  .describe("Kevin", { speed: .8, accuracy: .6, invincibility: 4 }, "#my-welcome")
-
-theater
-  .write("Kevin:Hello.")
-  .write(500)
-  .write("Kevin:My Name is Kevin.")
-  .write(500)
-  .write("Kevin:I love", 600, developer, " programming.", 1000)
-  .write(-13)
-  .write(designer, " design.", 1000)
-  .write(-8)
-  .write(dataScientist, " data science.", 1000)
-  // .write("Kevin:and a lot of other things...", 800)
-  .write(intro,"Kevin:Welcome to my site.", 1000, addButton);
-  // .write("Kevin:Explore away.", 1000, addButton);
-  // .write(function () { theater.play(true); });
-
 
 
 function designer () {

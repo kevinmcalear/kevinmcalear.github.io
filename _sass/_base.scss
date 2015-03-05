@@ -91,6 +91,10 @@ h1, h2, h3, h4, h5, h6 {
 a {
     color: $brand-color;
     text-decoration: none;
+    -webkit-transition: all 0.5s ease-in-out;
+    -moz-transition: all 0.5s ease-in-out;
+    -o-transition: all 0.5s ease-in-out;
+    transition: all 0.5s ease-in-out;
 
     &:visited {
         color: darken($brand-color, 15%);
@@ -98,6 +102,8 @@ a {
 
     &:hover {
         color: $text-color;
+        color: transparent;
+        text-shadow: 0 0 3px rgba(0,0,0,1);
         // text-decoration: underline;
     }
 }
@@ -200,6 +206,10 @@ pre {
         vertical-align: middle;
 
         path {
+            -webkit-transition: all 1s ease-in-out;
+            -moz-transition: all 1s ease-in-out;
+            -o-transition: all 1s ease-in-out;
+            transition: all 1s ease-in-out;
             fill: $grey-color;
         }
     }

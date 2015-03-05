@@ -1,3 +1,4 @@
+// used for building our imag tags
 function img_create(src, alt, title) {
     var img= document.createElement('img');
     img.src= src;
@@ -6,8 +7,7 @@ function img_create(src, alt, title) {
     return img;
 }
 
-
-function loadXMLDoc() {
+function getSongs() {
     var xmlhttp;
 
     if (window.XMLHttpRequest) {
@@ -19,40 +19,51 @@ function loadXMLDoc() {
     }
 
     xmlhttp.onreadystatechange = function() {
+        //  request finished and response is ready (4)
         if (xmlhttp.readyState == 4 ) {
+           // everything worked properly
            if(xmlhttp.status == 200){
-               var musicList = document.getElementById("music")
+               // find the element with the music id
+               var musicList = document.getElementById("music");
+               // get back the list of my faves from HypeMachine and parse it into JSON
                var songList = JSON.parse(xmlhttp.responseText);
+
+               // go through each song in the song list to create elements to attach to the musicList
                for(var index in songList) {
+                  // make sure an object is actually a song
                   if ( songList[index]["posturl"] ) {
+                    // grab each song
                     var song = songList[index];
+                    // create an image from each song's picture
                     var image = img_create(song["thumb_url_large"]);
+                    // create an anchor tag to add the song's link to
                     var a = document.createElement('a');
                     a.setAttribute('href',song["posturl"]);
                     a.setAttribute('target',"_blank");
-                    var span = document.createElement('span');
-                    span.appendChild(image);
-                    a.innerHTML = span.innerHTML;
-                    var span = document.createElement('span');
-                    span.appendChild(a);
-                    musicList.appendChild(span);
+                    // add the song's image inside the link
+                    a.innerHTML = image.outerHTML;
+                    // append the anchor to the list
+                    musicList.appendChild(a);
                   }
                }
-               console.log(JSON.parse(xmlhttp.responseText))
            }
            else if(xmlhttp.status == 400) {
-              alert('There was an error 400')
+              alert('There was an error 400');
            }
            else {
-               alert('something else other than 200 was returned')
+               alert('something else other than 200 was returned');
            }
         }
     }
-
+    // open our request
     xmlhttp.open("GET", "http://hypem.com/playlist/loved/kevinmcalear/json/1/data.js", true);
+    // send that baby
     xmlhttp.send();
 }
 
+// Get us some songs!
 (function(){
-  loadXMLDoc();
+  if (document.getElementById("music")){
+    getSongs();
+  }
 })();
