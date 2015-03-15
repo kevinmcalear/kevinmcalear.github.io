@@ -1,0 +1,1709 @@
+---
+layout: post
+title: Building Hater News
+date: 2014-10-27 01:50:05.000000000 -04:00
+categories:
+- Code
+- Data
+- Visualization
+- Web
+tags: []
+status: publish
+type: post
+published: true
+meta:
+  _edit_last: '1'
+  dp_article_share_disable: ''
+  dp_article_share_position: ''
+  dp_article_share_counter: ''
+  dp_article_share_tooltip: ''
+  share_gplus: '5'
+  share_twitter: '100'
+  share_linkedin: '35'
+  share_facebook: '44'
+  share_pinterest: '0'
+  share_delicious: '0'
+  share_stumbleupon: '0'
+  share_digg: '0'
+  share_reddit: '0'
+  share_buffer: '8'
+  share_vk: '0'
+  share_total: '192'
+  page_header_background_img: http://kevinmcalear.com/thoughts/wp-content/uploads/2014/10/haters-gonna-hate.gif
+  page_header_content: "[big_title]Using Machine Learning To Expose Haters.[/big_title]"
+  _wpas_done_all: '1'
+  voted_IP: a:7:{s:13:"76.126.143.47";i:1414446573;s:13:"62.235.203.65";i:1414446828;s:12:"91.39.215.98";i:1414460921;s:14:"138.87.184.136";i:1414462886;s:14:"100.37.139.224";i:1414466840;s:15:"109.171.137.210";i:1414488148;s:14:"118.238.204.54";i:1415025260;}
+  votes_count: '7'
+author:
+  login: kevin
+  email: kevin.mcalear@gmail.com
+  display_name: Kevin
+  first_name: Kevin
+  last_name: McAlear
+excerpt: !ruby/object:Hpricot::Doc
+  options: {}
+---
+
+<div tabindex="-1" id="notebook" class="border-box-sizing">
+<div class="container" id="notebook-container">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p><img src="assets/haterafrican.jpg" alt="" /></p>
+<h1 id="hater-news">Hater News</h1>
+<p>Haterz gonna hate. <a href="http://haternews.herokuapp.com/" target="_blank">But now you know who the haterz are</a>. I wanted to use data science / machine learning to identify and rank haters by their "hater" level throughout the internet. I started with Hacker News ( check out <a href="http://haternews.herokuapp.com/" target="_blank">Hater News</a> ) and I wanted to explain the how and what I've done so far.</p>
+<p>This post is long and detailed but I've tried to explain and post my code for how I've built out the Machine Learning aspects of this project using Python and <a href="http://scikit-learn.org/stable/">Scikit Learn</a>.</p>
+<h3 id="my-goal-">My Goal:</h3>
+<p>Look at any user from <a href="https://news.ycombinator.com/">hacker news</a> and be able to tell if they are a &quot;hater&quot; or not based on a score I give them. Then turn the whole thing into a web app so anyone can use it.</p>
+<h3 id="feel-free-to-look-under-the-hood-">Feel Free To Look Under The Hood.</h3>
+<p><a href="https://www.kaggle.com/c/detecting-insults-in-social-commentary/data">The Classifier Data I&#39;m Using.</a></p>
+<p><a href="https://github.com/HackerNews/API">Hacker News API I&#39;m Using.</a></p>
+<p><a href="https://github.com/kevinmcalear/hater_news">My GitHub Repo.</a></p>
+<p></p>
+<p><em>*Side Note: Eventually I would love to turn this into a <a href="https://developer.chrome.com/extensions/getstarted">Chrome App</a> that will just real-time analyze any user on a page when you visit hacker news and put a score right next to them so the world can see if they hate or love. I'm also going to build versions of this for Twitter, reddit, Instagram, Facebook, and maybe even dating apps. If you want to help, reach out! :)</em></p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="lets-get-started-">Lets Get Started!</h1>
+<p>We will begin by importing all of the required items we need from things like <a href="http://scikit-learn.org/stable/">scikit learn</a>, <a href="http://pandas.pydata.org/pandas-docs/stable/10min.html">pandas</a>, <a href="http://www.numpy.org/">numpy</a>, and even play around with things like <a href="http://www.nltk.org/">nlk</a> and <a href="https://docs.python.org/2/library/re.html">re</a>.</p>
+<p>The basic idea will be to split out each comment, create features based on things like if a word shows up in a comment or not, if insulting words appear, and other types of features. Once I have that then I will add in a classifier and if it scores well we are on our way to finding haters!</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[1]:
+</div>
+<div class="inner_cell">
+<div class="input_area">
+<div class="highlight">
+<pre><span class="c"># Importing my standard stuff</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="c"># Importing different Vectorizers to see what makes my soul sing the loudest.</span>
+<span class="kn">from</span> <span class="nn">sklearn.feature_extraction.text</span> <span class="kn">import</span> <span class="n">TfidfVectorizer</span>
+<span class="kn">from</span> <span class="nn">sklearn.feature_extraction.text</span> <span class="kn">import</span> <span class="n">CountVectorizer</span>
+
+<span class="c"># Importing various Classifiers to see what wins out. There can only be one! </span>
+<span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="kn">import</span> <span class="n">Perceptron</span>
+<span class="kn">from</span> <span class="nn">sklearn.svm</span> <span class="kn">import</span> <span class="n">LinearSVC</span>
+<span class="kn">from</span> <span class="nn">sklearn.svm</span> <span class="kn">import</span> <span class="n">SVC</span>
+<span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="kn">import</span> <span class="n">LogisticRegression</span>
+
+<span class="c"># Snagging the validation stuff to see how well things do.</span>
+<span class="kn">from</span> <span class="nn">sklearn.pipeline</span> <span class="kn">import</span> <span class="n">Pipeline</span>
+<span class="kn">from</span> <span class="nn">sklearn.cross_validation</span> <span class="kn">import</span> <span class="n">cross_val_score</span>
+
+
+<span class="c"># Getting Stopwords to potentially improve accuracy.</span>
+<span class="kn">from</span> <span class="nn">nltk.corpus</span> <span class="kn">import</span> <span class="n">stopwords</span>
+
+<span class="c"># Messing with tokenization via NLTK</span>
+<span class="kn">from</span> <span class="nn">nltk</span> <span class="kn">import</span> <span class="n">word_tokenize</span><span class="p">,</span> <span class="n">pos_tag</span>
+<span class="c"># Messing with Stemming</span>
+<span class="kn">from</span> <span class="nn">nltk.stem</span> <span class="kn">import</span> <span class="n">PorterStemmer</span>
+<span class="c"># Messing with Lemmatizing</span>
+<span class="kn">from</span> <span class="nn">nltk.stem.wordnet</span> <span class="kn">import</span> <span class="n">WordNetLemmatizer</span>
+
+<span class="c"># Messing with some other string splitting techniques. You can use the following thing like this:</span>
+<span class="c"># re.split(&#39;; |, &#39;,str)</span>
+<span class="kn">import</span> <span class="nn">re</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="exploring-different-ways-to-achieve-my-goal-">Exploring Different Ways To Achieve My Goal.</h1>
+<p>Here I am importing my data using <strong>pandas</strong>, pulling out the right features and assigning them to my X &amp; y to put into my models. You&#39;ll notice that I&#39;m actually using both my test &amp; training data in a single variable because of how <a href="http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.cross_val_score.html">cross_val_score</a> works later on.</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[2]:
+</div>
+<div class="inner_cell">
+<div class="input_area">
+<div class="highlight">
+<pre><span class="c"># Setting up my english stopwords, yo.</span>
+<span class="n">stopwords</span> <span class="o">=</span> <span class="n">stopwords</span><span class="o">.</span><span class="n">words</span><span class="p">(</span><span class="s">&#39;english&#39;</span><span class="p">)</span>
+
+<span class="c"># Here I combined my training &amp; test data. I will used this as main total &quot;training&quot; data in production &amp; for cross_val stuff.</span>
+<span class="n">corpus</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s">&#39;data/total_data.csv&#39;</span><span class="p">)</span>
+
+<span class="c"># Setting Up my X &amp; y</span>
+<span class="n">X_raw</span> <span class="o">=</span> <span class="n">corpus</span><span class="o">.</span><span class="n">Comment</span>
+<span class="n">y_raw</span> <span class="o">=</span> <span class="n">corpus</span><span class="o">.</span><span class="n">Insult</span>
+
+<span class="c"># Setting Up My Different Pipelines. I tried out several different combos to see where to go next.</span>
+<span class="n">pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">([</span>
+                     <span class="p">(</span><span class="s">&#39;vect&#39;</span><span class="p">,</span> <span class="n">TfidfVectorizer</span><span class="p">(</span><span class="n">binary</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">use_idf</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">stop_words</span><span class="o">=</span><span class="s">&#39;english&#39;</span><span class="p">)),</span>
+                     <span class="p">(</span><span class="s">&#39;clf&#39;</span><span class="p">,</span> <span class="n">LogisticRegression</span><span class="p">())</span>
+<span class="p">])</span>
+
+<span class="n">other_pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">([</span>
+                     <span class="p">(</span><span class="s">&#39;vect&#39;</span><span class="p">,</span> <span class="n">CountVectorizer</span><span class="p">(</span><span class="n">binary</span><span class="o">=</span><span class="bp">True</span><span class="p">)),</span>
+                     <span class="p">(</span><span class="s">&#39;clf&#39;</span><span class="p">,</span> <span class="n">LogisticRegression</span><span class="p">())</span>
+<span class="p">])</span>
+
+
+<span class="n">LSVC_pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">([</span>
+                     <span class="p">(</span><span class="s">&#39;vect&#39;</span><span class="p">,</span>  <span class="n">TfidfVectorizer</span><span class="p">(</span><span class="n">binary</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">use_idf</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">stop_words</span><span class="o">=</span><span class="s">&#39;english&#39;</span><span class="p">)),</span>
+                     <span class="p">(</span><span class="s">&#39;clf&#39;</span><span class="p">,</span> <span class="n">LinearSVC</span><span class="p">())</span>
+<span class="p">])</span>
+
+<span class="n">Perceptron_pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">([</span>
+                     <span class="p">(</span><span class="s">&#39;vect&#39;</span><span class="p">,</span>  <span class="n">TfidfVectorizer</span><span class="p">(</span><span class="n">binary</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">use_idf</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">stop_words</span><span class="o">=</span><span class="s">&#39;english&#39;</span><span class="p">)),</span>
+                     <span class="p">(</span><span class="s">&#39;clf&#39;</span><span class="p">,</span> <span class="n">Perceptron</span><span class="p">())</span>
+<span class="p">])</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="evaluation-time-">EVALUATION TIME!</h1>
+<p>Here I am looking at <strong>Accuracy</strong>, <strong>Precision</strong>, &amp; <strong>Recall</strong> (<a href="http://en.wikipedia.org/wiki/Precision_and_recall">learn more</a>) and using the <strong>cross_val_score</strong> method which splits up my data, takes the <strong>pipelines</strong> I made, and then evaluates it over and over, in different combinations against itself to get a reliable score.</p>
+<p>I want a good overall score but I would also like to improve my Recall as much as possible. Recall gives me a measurement of false negatives, meaning a score based on if I miss-classify something by saying a comment is NOT insulting when in fact it actually is. I am interested in a high score using this measurement to ensure <a href="http://www.quickmeme.com/img/a3/a3e69566093ab74d0625a7c5892cade8c2adeecd86112356875ff2b05fcd020d.jpg">no hater is left behind</a>. </p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[3]:
+</div>
+<div class="inner_cell">
+<div class="input_area">
+<div class="highlight">
+<pre><span class="c"># THE INITIAL &#39;STATNDARD&#39; MODEL I STARTED WITH</span>
+<span class="n">accuracy_scores</span> <span class="o">=</span> <span class="n">cross_val_score</span><span class="p">(</span><span class="n">pipeline</span><span class="p">,</span> <span class="n">X_raw</span><span class="p">,</span> <span class="n">y_raw</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">precision_scores</span> <span class="o">=</span> <span class="n">cross_val_score</span><span class="p">(</span><span class="n">pipeline</span><span class="p">,</span> <span class="n">X_raw</span><span class="p">,</span> <span class="n">y_raw</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">scoring</span><span class="o">=</span><span class="s">&#39;precision&#39;</span><span class="p">)</span>
+<span class="n">recall_scores</span> <span class="o">=</span> <span class="n">cross_val_score</span><span class="p">(</span><span class="n">pipeline</span><span class="p">,</span> <span class="n">X_raw</span><span class="p">,</span> <span class="n">y_raw</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">scoring</span><span class="o">=</span><span class="s">&#39;recall&#39;</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="s">&quot;***************OUR RESULTS***************&quot;</span>
+<span class="k">print</span>
+<span class="k">print</span>
+
+<span class="k">print</span> <span class="s">&quot;TfidfVect + Logistic Regression&quot;</span>
+<span class="k">print</span> <span class="s">&quot;-------------------------------&quot;</span>
+<span class="k">print</span> <span class="s">&quot;Accuracy:&quot;</span><span class="p">,</span> <span class="n">accuracy_scores</span><span class="p">,</span> <span class="s">&quot;Mean:&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">accuracy_scores</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;Precision:&quot;</span><span class="p">,</span> <span class="n">precision_scores</span><span class="p">,</span> <span class="s">&quot;Mean:&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">precision_scores</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;Recall:&quot;</span><span class="p">,</span> <span class="n">recall_scores</span><span class="p">,</span> <span class="s">&quot;Mean:&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">recall_scores</span><span class="p">)</span>
+
+
+
+
+<span class="c"># VS NORMAL COUNT VECTORIZER **NOTE** Out of all of the models without extra features, this performed the best for my goals.</span>
+
+<span class="n">other_accuracy_scores</span> <span class="o">=</span> <span class="n">cross_val_score</span><span class="p">(</span><span class="n">other_pipeline</span><span class="p">,</span> <span class="n">X_raw</span><span class="p">,</span> <span class="n">y_raw</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">other_precision_scores</span> <span class="o">=</span> <span class="n">cross_val_score</span><span class="p">(</span><span class="n">other_pipeline</span><span class="p">,</span> <span class="n">X_raw</span><span class="p">,</span> <span class="n">y_raw</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">scoring</span><span class="o">=</span><span class="s">&#39;precision&#39;</span><span class="p">)</span>
+<span class="n">other_recall_scores</span> <span class="o">=</span> <span class="n">cross_val_score</span><span class="p">(</span><span class="n">other_pipeline</span><span class="p">,</span> <span class="n">X_raw</span><span class="p">,</span> <span class="n">y_raw</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">scoring</span><span class="o">=</span><span class="s">&#39;recall&#39;</span><span class="p">)</span>
+<span class="k">print</span>
+<span class="k">print</span>
+<span class="k">print</span> <span class="s">&quot;CountVect + Logistic Regression&quot;</span>
+<span class="k">print</span> <span class="s">&quot;-------------------------------&quot;</span>
+<span class="k">print</span> <span class="s">&quot;Accuracy:&quot;</span><span class="p">,</span> <span class="n">other_accuracy_scores</span><span class="p">,</span> <span class="s">&quot;Mean:&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">other_accuracy_scores</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;Precision:&quot;</span><span class="p">,</span> <span class="n">other_precision_scores</span><span class="p">,</span> <span class="s">&quot;Mean:&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">other_precision_scores</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;Recall:&quot;</span><span class="p">,</span> <span class="n">other_recall_scores</span><span class="p">,</span> <span class="s">&quot;Mean:&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">other_recall_scores</span><span class="p">)</span>
+
+
+
+
+<span class="c"># VS NORMAL COUNT VECTORIZER</span>
+
+<span class="n">LSVC_accuracy_scores</span> <span class="o">=</span> <span class="n">cross_val_score</span><span class="p">(</span><span class="n">LSVC_pipeline</span><span class="p">,</span> <span class="n">X_raw</span><span class="p">,</span> <span class="n">y_raw</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">LSVC_precision_scores</span> <span class="o">=</span> <span class="n">cross_val_score</span><span class="p">(</span><span class="n">LSVC_pipeline</span><span class="p">,</span> <span class="n">X_raw</span><span class="p">,</span> <span class="n">y_raw</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">scoring</span><span class="o">=</span><span class="s">&#39;precision&#39;</span><span class="p">)</span>
+<span class="n">LSVC_recall_scores</span> <span class="o">=</span> <span class="n">cross_val_score</span><span class="p">(</span><span class="n">LSVC_pipeline</span><span class="p">,</span> <span class="n">X_raw</span><span class="p">,</span> <span class="n">y_raw</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">scoring</span><span class="o">=</span><span class="s">&#39;recall&#39;</span><span class="p">)</span>
+<span class="k">print</span>
+<span class="k">print</span>
+<span class="k">print</span> <span class="s">&quot;TfidfVect + LinearSVC&quot;</span>
+<span class="k">print</span> <span class="s">&quot;-------------------------------&quot;</span>
+<span class="k">print</span> <span class="s">&quot;Accuracy:&quot;</span><span class="p">,</span> <span class="n">LSVC_accuracy_scores</span><span class="p">,</span> <span class="s">&quot;Mean:&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">LSVC_accuracy_scores</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;Precision:&quot;</span><span class="p">,</span> <span class="n">LSVC_precision_scores</span><span class="p">,</span> <span class="s">&quot;Mean:&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">LSVC_precision_scores</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;Recall:&quot;</span><span class="p">,</span> <span class="n">LSVC_recall_scores</span><span class="p">,</span> <span class="s">&quot;Mean:&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">LSVC_recall_scores</span><span class="p">)</span>
+
+
+
+
+
+<span class="c"># VS NORMAL COUNT VECTORIZER</span>
+
+<span class="n">Perceptron_accuracy_scores</span> <span class="o">=</span> <span class="n">cross_val_score</span><span class="p">(</span><span class="n">Perceptron_pipeline</span><span class="p">,</span> <span class="n">X_raw</span><span class="p">,</span> <span class="n">y_raw</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">Perceptron_precision_scores</span> <span class="o">=</span> <span class="n">cross_val_score</span><span class="p">(</span><span class="n">Perceptron_pipeline</span><span class="p">,</span> <span class="n">X_raw</span><span class="p">,</span> <span class="n">y_raw</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">scoring</span><span class="o">=</span><span class="s">&#39;precision&#39;</span><span class="p">)</span>
+<span class="n">Perceptron_recall_scores</span> <span class="o">=</span> <span class="n">cross_val_score</span><span class="p">(</span><span class="n">Perceptron_pipeline</span><span class="p">,</span> <span class="n">X_raw</span><span class="p">,</span> <span class="n">y_raw</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">scoring</span><span class="o">=</span><span class="s">&#39;recall&#39;</span><span class="p">)</span>
+<span class="k">print</span>
+<span class="k">print</span>
+<span class="k">print</span> <span class="s">&quot;TfidfVect + Percptron&quot;</span>
+<span class="k">print</span> <span class="s">&quot;-------------------------------&quot;</span>
+<span class="k">print</span> <span class="s">&quot;Accuracy:&quot;</span><span class="p">,</span> <span class="n">Perceptron_accuracy_scores</span><span class="p">,</span> <span class="s">&quot;Mean:&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">Perceptron_accuracy_scores</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;Precision:&quot;</span><span class="p">,</span> <span class="n">Perceptron_precision_scores</span><span class="p">,</span> <span class="s">&quot;Mean:&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">Perceptron_precision_scores</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;Recall:&quot;</span><span class="p">,</span> <span class="n">Perceptron_recall_scores</span><span class="p">,</span> <span class="s">&quot;Mean:&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">Perceptron_recall_scores</span><span class="p">)</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+***************OUR RESULTS***************
+
+
+TfidfVect + Logistic Regression
+-------------------------------
+Accuracy: [ 0.81969697  0.81439394  0.81790592  0.81942337  0.81866464] Mean: 0.818016967858
+Precision: [ 0.85806452  0.825       0.84615385  0.8313253   0.84713376] Mean: 0.84153548429
+Recall: [ 0.38108883  0.3782235   0.37931034  0.39655172  0.38218391] Mean: 0.383471659586
+
+
+CountVect + Logistic Regression
+-------------------------------
+Accuracy: [ 0.83939394  0.84848485  0.84218513  0.84825493  0.84066768] Mean: 0.843797305375
+Precision: [ 0.75464684  0.76895307  0.74137931  0.75694444  0.73793103] Mean: 0.751970939603
+Recall: [ 0.58166189  0.61031519  0.61781609  0.62643678  0.61494253] Mean: 0.610234495933
+
+
+TfidfVect + LinearSVC
+-------------------------------
+Accuracy: [ 0.83181818  0.82878788  0.8323217   0.84066768  0.82776935] Mean: 0.832272957189
+Precision: [ 0.74329502  0.743083    0.73605948  0.75367647  0.7122807 ] Mean: 0.737678935001
+Recall: [ 0.55587393  0.53868195  0.56896552  0.58908046  0.58333333] Mean: 0.567187036854
+
+
+TfidfVect + Percptron
+-------------------------------
+Accuracy: [ 0.8         0.80606061  0.79742033  0.79817906  0.79362671] Mean: 0.799057341242
+Precision: [ 0.64214047  0.63716814  0.6231003   0.61452514  0.60795455] Mean: 0.624977719778
+Recall: [ 0.55014327  0.61891117  0.58908046  0.63218391  0.61494253] Mean: 0.601052267562
+
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="now-that-i-have-a-baseline-time-to-pick-a-model-and-build-it-out-further-">Now That I Have A Baseline, Time to Pick A Model And Build It Out Further.</h1>
+<p>I ended it up picking <strong>CountVectorizer + Logistic Regression</strong> which you will see further down. In order to improve the score I started to play with extra features adding them manually and &quot;hand making&quot; them. These are almost meta data about each document that I was hoping would help give extra information to my classifier. They are things like How many &quot;bad words&quot; are used in a specific comment or the ratio of bad words used vs how many words total were in a comment. I even tried to look at things like if someone spoke in all CAPS or not to see if that could help predict if the comment is insulting or not.</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[4]:
+</div>
+<div class="inner_cell">
+<div class="input_area">
+<div class="highlight">
+<pre><span class="c"># Setting up our actually train and test data sets</span>
+<span class="n">train_corpus</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s">&#39;data/train.csv&#39;</span><span class="p">)</span>
+<span class="n">test_corpus</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s">&#39;data/test_with_solutions.csv&#39;</span><span class="p">)</span>
+
+<span class="c"># Getting our list of &quot;badwords&quot;</span>
+<span class="n">badwords</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s">&#39;data/my_badwords.csv&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">words</span><span class="p">)</span>
+
+<span class="c"># If you would like to see what some of these words look like, play with this:</span>
+<span class="k">print</span> <span class="s">&quot;Some Badwords We Will Check:&quot;</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">badwords</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">9</span><span class="p">]</span>
+<span class="k">print</span>
+
+<span class="c"># Setting Up my X &amp; y</span>
+<span class="c"># NOTE: If you want to use all the data (including the test data), uncomment out the other X &amp; y trains below.</span>
+<span class="n">X_train</span> <span class="o">=</span> <span class="n">train_corpus</span><span class="o">.</span><span class="n">Comment</span>
+<span class="n">y_train</span> <span class="o">=</span> <span class="n">train_corpus</span><span class="o">.</span><span class="n">Insult</span>
+<span class="n">X_train</span> <span class="o">=</span> <span class="n">corpus</span><span class="o">.</span><span class="n">Comment</span>
+<span class="n">y_train</span> <span class="o">=</span> <span class="n">corpus</span><span class="o">.</span><span class="n">Insult</span>
+
+<span class="n">X_test</span> <span class="o">=</span> <span class="n">test_corpus</span><span class="o">.</span><span class="n">Comment</span>
+<span class="n">y_test</span> <span class="o">=</span> <span class="n">test_corpus</span><span class="o">.</span><span class="n">Insult</span>
+
+<span class="c"># Just giving feedback so we know if we are using all of the data to train the model or not.</span>
+<span class="k">print</span> <span class="s">&quot;X_train&#39;s number of instances:&quot;</span><span class="p">,</span><span class="n">X_train</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="k">print</span>
+
+<span class="k">if</span> <span class="n">X_train</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">train_corpus</span><span class="o">.</span><span class="n">Comment</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+    <span class="k">print</span> <span class="s">&quot;*************************************************************************************************************&quot;</span>
+    <span class="k">print</span> <span class="s">&quot;***JUST AN FYI, YOU&#39;RE USING BOTH THE TRAINING &amp; TESTING DATA FOR TRAINING. SHOULD BE FOR PRODUCTION ONLY.***&quot;</span>
+    <span class="k">print</span> <span class="s">&quot;*************************************************************************************************************&quot;</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&quot;----------------------------------------------------------------------&quot;</span>
+    <span class="k">print</span> <span class="s">&quot;You are using just the training data for training. Makes sense, right?&quot;</span>
+    <span class="k">print</span> <span class="s">&quot;----------------------------------------------------------------------&quot;</span>
+
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+Some Badwords We Will Check: [&apos;bugger&apos;, &apos;jizz&apos;, &apos;l3i+ch&apos;, &apos;f u c k e r&apos;, &apos;s hit&apos;, &apos;ma5terbate&apos;, &apos;bum&apos;, &apos;bimbo&apos;, &apos;pimpis&apos;]
+
+X_train&apos;s number of instances: 6594
+
+*************************************************************************************************************
+***JUST AN FYI, YOU&apos;RE USING BOTH THE TRAINING &amp; TESTING DATA FOR TRAINING. SHOULD BE FOR PRODUCTION ONLY.***
+*************************************************************************************************************
+
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="adding-in-extra-features-">Adding In Extra Features.</h1>
+<p>Here I add in various extra features to help my classifier out. These are features that I had to manually create and add into my model so I didn&#39;t use cross_val_score and had to evaluate them manually. </p>
+<h3 id="features-i-added-to-improve-the-model-are-the-following-">Features I added to improve the model are the following:</h3>
+<ul>
+<li><strong>badwords_count - </strong>A count of bad words used in each comment.</li>
+<li><strong>n_words - </strong>A count of words used in each comment.</li>
+<li><strong>allcaps - </strong>A count of capital letters in each comment.</li>
+<li><strong>allcaps_ratio - </strong>A count of capital letters in each comment / the total words used in each comment.</li>
+<li><strong>bad_ratio - </strong>A count of bad words used in each comment / the total words used in each comment.</li>
+<li><strong>exclamation - </strong>A count of &quot;!&quot; used in each comment.</li>
+<li><strong>addressing - </strong>A count of &quot;@&quot; symbols used in each comment.</li>
+<li><strong>spaces - </strong>A count of spaces used in each comment.</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[5]:
+</div>
+<div class="inner_cell">
+<div class="input_area">
+<div class="highlight">
+<pre><span class="c"># Since I was unhappy with aspects of my score, I added addtional features my classifier can use</span>
+
+<span class="c"># This is just a count of how many bad word</span>
+<span class="n">train_badwords_count</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">test_badwords_count</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">X_train</span><span class="p">:</span>
+    <span class="n">tokens</span> <span class="o">=</span> <span class="n">el</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)</span>
+    <span class="n">train_badwords_count</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tokens</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">badwords</span><span class="p">]))</span>
+
+<span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">X_test</span><span class="p">:</span>
+    <span class="n">tokens</span> <span class="o">=</span> <span class="n">el</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)</span>
+    <span class="n">test_badwords_count</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tokens</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">badwords</span><span class="p">]))</span>
+
+<span class="c"># **SHOUT OUT**</span>
+<span class="c"># I was messing with stuff from Andreas Mueller for these next features. Thanks man! :) </span>
+<span class="c"># His Blog Post on this: http://blog.kaggle.com/2012/09/26/impermium-andreas-blog/ </span>
+<span class="c"># **SHOUT OUT**</span>
+
+<span class="n">train_n_words</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">split</span><span class="p">())</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">X_train</span><span class="p">]</span>
+<span class="n">test_n_words</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">split</span><span class="p">())</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">X_test</span><span class="p">]</span>
+
+<span class="n">train_allcaps</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">w</span><span class="o">.</span><span class="n">isupper</span><span class="p">()</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">comment</span><span class="o">.</span><span class="n">split</span><span class="p">()])</span> <span class="k">for</span> <span class="n">comment</span> <span class="ow">in</span> <span class="n">X_train</span><span class="p">]</span>
+<span class="n">test_allcaps</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">w</span><span class="o">.</span><span class="n">isupper</span><span class="p">()</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">comment</span><span class="o">.</span><span class="n">split</span><span class="p">()])</span> <span class="k">for</span> <span class="n">comment</span> <span class="ow">in</span> <span class="n">X_test</span><span class="p">]</span>
+
+<span class="n">train_allcaps_ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">train_allcaps</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">train_n_words</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+<span class="n">test_allcaps_ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">test_allcaps</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">test_n_words</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+
+<span class="n">train_bad_ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">train_badwords_count</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">train_n_words</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+<span class="n">test_bad_ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">test_badwords_count</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">test_n_words</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+
+<span class="n">train_exclamation</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&quot;!&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">X_train</span><span class="p">]</span>
+<span class="n">test_exclamation</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&quot;!&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">X_test</span><span class="p">]</span>
+
+<span class="n">train_addressing</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&quot;@&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">X_train</span><span class="p">]</span>
+<span class="n">test_addressing</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&quot;@&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">X_test</span><span class="p">]</span>
+
+<span class="n">train_spaces</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">X_train</span><span class="p">]</span>
+<span class="n">test_spaces</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">X_test</span><span class="p">]</span>
+
+
+<span class="k">print</span> <span class="s">&quot;train_badwords count:&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">train_badwords_count</span><span class="p">),</span> <span class="s">&quot;test_badwords count:&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_badwords_count</span><span class="p">),</span>
+<span class="k">print</span> <span class="s">&quot;train_allcaps count:&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">train_allcaps</span><span class="p">),</span> <span class="s">&quot;test_allcaps count:&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_allcaps</span><span class="p">)</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+train_badwords count: 6594 test_badwords count: 2647 train_allcaps count: 6594 test_allcaps count: 2647
+
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="time-to-pick-our-model-add-in-our-new-features-">Time To Pick Our Model &amp; Add In Our New Features.</h1>
+<p>Now that we have our new features we need to pick a vectorizer, smash the new features inside of our vectorized old features, and evaluated everything with our classfier.</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[6]:
+</div>
+<div class="inner_cell">
+<div class="input_area">
+<div class="highlight">
+<pre><span class="c"># SIDE NOTE: TfidfVectorizer sucks for this type of problem. Well, you could use it and not use idf and it does get better but not too much...</span>
+<span class="c"># vect = TfidfVectorizer(binary=True, use_idf=True, stop_words=&#39;english&#39;)</span>
+<span class="n">vect</span> <span class="o">=</span> <span class="n">CountVectorizer</span><span class="p">(</span><span class="n">binary</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">clf</span> <span class="o">=</span> <span class="n">LogisticRegression</span><span class="p">()</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="-side-note-this-is-the-smashing-process-i-was-talking-about-">*Side Note: This is the &quot;smashing&quot; process I was talking about.</h3>
+<p>I&#39;m basically fiting and transforming our features via our vectorizer and then useing <a href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.reshape.html">.reshape( )</a> &amp; <a href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.hstack.html">np.hstack( )</a> to manually add in our extra features.</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[7]:
+</div>
+<div class="inner_cell">
+<div class="input_area">
+<div class="highlight">
+<pre><span class="n">X_train_transform</span> <span class="o">=</span> <span class="n">vect</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X_train</span><span class="p">)</span>
+<span class="n">X_test_transform</span> <span class="o">=</span> <span class="n">vect</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
+
+<span class="n">train_reshaped_badwords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">train_badwords_count</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">train_badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">test_reshaped_badwords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">test_badwords_count</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">test_badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+
+<span class="n">train_reshaped_n_words</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">train_n_words</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">train_badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">test_reshaped_n_words</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">test_n_words</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">test_badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+
+<span class="n">train_reshaped_allcaps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">train_allcaps</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">train_badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">test_reshaped_allcaps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">test_allcaps</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">test_badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+
+<span class="n">train_reshaped_allcaps_ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">train_allcaps_ratio</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">train_badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">test_reshaped_allcaps_ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">test_allcaps_ratio</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">test_badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+
+<span class="n">train_reshaped_bad_ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">train_bad_ratio</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">train_badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">test_reshaped_bad_ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">test_bad_ratio</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">test_badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+
+<span class="n">train_reshaped_exclamation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">train_exclamation</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">train_badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">test_reshaped_exclamation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">test_exclamation</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">test_badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+
+<span class="n">train_reshaped_addressing</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">train_addressing</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">train_badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">test_reshaped_addressing</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">test_addressing</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">test_badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+
+<span class="n">train_reshaped_spaces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">train_spaces</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">train_badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">test_reshaped_spaces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">test_spaces</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">test_badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+
+
+
+<span class="n">X_train_transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">X_train_transform</span><span class="o">.</span><span class="n">todense</span><span class="p">(),</span> <span class="n">train_reshaped_badwords</span><span class="p">))</span>
+<span class="n">X_test_transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">X_test_transform</span><span class="o">.</span><span class="n">todense</span><span class="p">(),</span> <span class="n">test_reshaped_badwords</span><span class="p">))</span>
+
+<span class="n">X_train_transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">X_train_transform</span><span class="p">,</span> <span class="n">train_reshaped_n_words</span><span class="p">))</span>
+<span class="n">X_test_transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">X_test_transform</span><span class="p">,</span> <span class="n">test_reshaped_n_words</span><span class="p">))</span>
+
+<span class="n">X_train_transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">X_train_transform</span><span class="p">,</span> <span class="n">train_reshaped_allcaps</span><span class="p">))</span>
+<span class="n">X_test_transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">X_test_transform</span><span class="p">,</span> <span class="n">test_reshaped_allcaps</span><span class="p">))</span>
+
+<span class="n">X_train_transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">X_train_transform</span><span class="p">,</span> <span class="n">train_reshaped_allcaps_ratio</span><span class="p">))</span>
+<span class="n">X_test_transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">X_test_transform</span><span class="p">,</span> <span class="n">test_reshaped_allcaps_ratio</span><span class="p">))</span>
+
+<span class="n">X_train_transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">X_train_transform</span><span class="p">,</span> <span class="n">train_reshaped_bad_ratio</span><span class="p">))</span>
+<span class="n">X_test_transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">X_test_transform</span><span class="p">,</span> <span class="n">test_reshaped_bad_ratio</span><span class="p">))</span>
+
+<span class="n">X_train_transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">X_train_transform</span><span class="p">,</span> <span class="n">train_reshaped_exclamation</span><span class="p">))</span>
+<span class="n">X_test_transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">X_test_transform</span><span class="p">,</span> <span class="n">test_reshaped_exclamation</span><span class="p">))</span>
+
+<span class="n">X_train_transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">X_train_transform</span><span class="p">,</span> <span class="n">train_reshaped_addressing</span><span class="p">))</span>
+<span class="n">X_test_transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">X_test_transform</span><span class="p">,</span> <span class="n">test_reshaped_addressing</span><span class="p">))</span>
+
+<span class="n">X_train_transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">X_train_transform</span><span class="p">,</span> <span class="n">train_reshaped_spaces</span><span class="p">))</span>
+<span class="n">X_test_transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">X_test_transform</span><span class="p">,</span> <span class="n">test_reshaped_spaces</span><span class="p">))</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="scoring-our-new-model-">Scoring Our New Model.</h1>
+<p>Finally We get to see our new score. It seems to be doing a bit better but to start to look at recall and other measures we can set our predictions and then see how many items we missed and in what ways we missed them. Execute the final cells to see the scores.</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[8]:
+</div>
+<div class="inner_cell">
+<div class="input_area">
+<div class="highlight">
+<pre><span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train_transform</span><span class="p">,</span><span class="n">y_train</span><span class="p">)</span>
+<span class="n">predictions</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test_transform</span><span class="p">)</span>
+<span class="n">clf</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">X_test_transform</span><span class="p">,</span> <span class="n">y_test</span><span class="p">)</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="prompt output_prompt">
+    Out[8]:</div>
+<div class="output_text output_subarea output_pyout">
+<pre>
+0.97468832640725345
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[9]:
+</div>
+<div class="inner_cell">
+<div class="input_area">
+<div class="highlight">
+<pre><span class="c"># Run this cell to get a print out of each of our wrong predcitions, and how they were predicted incorrectly.</span>
+<span class="n">wrong_predictions_number</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">false_negatives</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">false_postitives</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">predictions</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">p</span> <span class="o">!=</span> <span class="n">y_test</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+        <span class="n">wrong_predictions_number</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">p</span> <span class="o">&gt;</span> <span class="n">y_test</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+            <span class="n">false_postitives</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">print</span>
+            <span class="k">print</span> <span class="s">&quot;++FALSE POSITIVE++&quot;</span>
+        <span class="k">if</span> <span class="n">p</span> <span class="o">&lt;</span> <span class="n">y_test</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+            <span class="n">false_negatives</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">print</span>
+            <span class="k">print</span> <span class="s">&quot;--FALSE NEGATIVE--&quot;</span>
+        <span class="k">print</span> <span class="s">&quot;predicted:&quot;</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="s">&quot;actual&quot;</span><span class="p">,</span> <span class="n">y_test</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+++FALSE POSITIVE++
+predicted: 1 actual 0
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+++FALSE POSITIVE++
+predicted: 1 actual 0
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+++FALSE POSITIVE++
+predicted: 1 actual 0
+
+++FALSE POSITIVE++
+predicted: 1 actual 0
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+++FALSE POSITIVE++
+predicted: 1 actual 0
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+++FALSE POSITIVE++
+predicted: 1 actual 0
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+++FALSE POSITIVE++
+predicted: 1 actual 0
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+++FALSE POSITIVE++
+predicted: 1 actual 0
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+++FALSE POSITIVE++
+predicted: 1 actual 0
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+++FALSE POSITIVE++
+predicted: 1 actual 0
+
+++FALSE POSITIVE++
+predicted: 1 actual 0
+
+++FALSE POSITIVE++
+predicted: 1 actual 0
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+++FALSE POSITIVE++
+predicted: 1 actual 0
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+--FALSE NEGATIVE--
+predicted: 0 actual 1
+
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[10]:
+</div>
+<div class="inner_cell">
+<div class="input_area">
+<div class="highlight">
+<pre><span class="c"># Execute this cell to see a final scoring of our new model</span>
+<span class="k">print</span> <span class="s">&quot;total number of instances:&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">predictions</span><span class="p">),</span>
+<span class="k">print</span> <span class="s">&quot;| total number wrong:&quot;</span><span class="p">,</span> <span class="n">wrong_predictions_number</span><span class="p">,</span>
+<span class="k">print</span> <span class="s">&quot;| total false negatives:&quot;</span><span class="p">,</span> <span class="n">false_negatives</span><span class="p">,</span>
+<span class="k">print</span> <span class="s">&quot;| total false positives:&quot;</span><span class="p">,</span> <span class="n">false_postitives</span>
+<span class="k">print</span>
+<span class="k">print</span>
+<span class="k">print</span> <span class="s">&quot;            THE FINAL STATS&quot;</span>
+<span class="k">print</span> <span class="s">&quot;----------------------------------------&quot;</span>
+<span class="k">print</span> <span class="s">&quot;Percent Right:&quot;</span><span class="p">,</span> <span class="mi">100</span> <span class="o">-</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">wrong_predictions_number</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">predictions</span><span class="p">)))</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span><span class="s">&quot;%&quot;</span>
+<span class="k">print</span> <span class="s">&quot;Percent Wrong:&quot;</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">wrong_predictions_number</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">predictions</span><span class="p">)))</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span><span class="s">&quot;%&quot;</span>
+<span class="k">print</span> <span class="s">&quot;Percent False Negatives:&quot;</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">false_negatives</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">predictions</span><span class="p">)))</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span><span class="s">&quot;%&quot;</span>
+<span class="k">print</span> <span class="s">&quot;Percent False Positives:&quot;</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">false_postitives</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">predictions</span><span class="p">)))</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span><span class="s">&quot;%&quot;</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+total number of instances: 2647 | total number wrong: 67 | total false negatives: 54 | total false positives: 13
+
+
+            THE FINAL STATS
+----------------------------------------
+Percent Right: 97.4688326407 %
+Percent Wrong: 2.53116735927 %
+Percent False Negatives: 2.04004533434 %
+Percent False Positives: 0.491122024934 %
+
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[11]:
+</div>
+<div class="inner_cell">
+<div class="input_area">
+<div class="highlight">
+<pre><span class="c"># Uncomment this and execute to get a list of insults to look through for more potential patterns</span>
+<span class="c"># corpus.Comment[corpus.Insult == 1].to_csv(&quot;insults.csv&quot;)</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="now-time-to-pull-in-data-from-hacker-news-">Now Time To Pull In Data From Hacker News.</h1>
+<p>Thanks <a href="https://news.ycombinator.com/">Hacker News</a> for your great <a href="https://github.com/HackerNews/API">API</a>!<br />
+Here I will be using urllib2 and json to pull in and organize the data I get back from HN.</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[12]:
+</div>
+<div class="inner_cell">
+<div class="input_area">
+<div class="highlight">
+<pre><span class="c"># Setting up a connection to the internetz</span>
+<span class="kn">from</span> <span class="nn">urllib2</span> <span class="kn">import</span> <span class="n">urlopen</span>
+<span class="c"># Getting things to come back from json to a dict</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="c"># Making that json pretty if needed</span>
+<span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pprint</span>
+<span class="c"># Dealing with stupid Unicode issues</span>
+<span class="kn">from</span> <span class="nn">django.utils.encoding</span> <span class="kn">import</span> <span class="n">smart_str</span>
+
+<span class="c"># Let&#39;s make sure things work by getting a magical kitten from the interwebs</span>
+<span class="n">kittens</span> <span class="o">=</span> <span class="n">urlopen</span><span class="p">(</span><span class="s">&#39;http://placekitten.com/&#39;</span><span class="p">)</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">kittens</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="n">kitty</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="mi">559</span><span class="p">:</span><span class="mi">1000</span><span class="p">]</span>
+<span class="k">print</span> <span class="s">&quot;MY PRETTY KITTY. HIS NAME IS FRANK.&quot;</span>
+<span class="k">print</span>
+<span class="k">print</span> <span class="n">kitty</span>
+<span class="k">print</span>
+
+<span class="c"># Now time to try with Hacker News</span>
+<span class="n">username</span> <span class="o">=</span> <span class="s">&quot;testhater&quot;</span>
+<span class="n">strt_item</span> <span class="o">=</span> <span class="s">&quot;8478757&quot;</span>
+<span class="n">url_usr_strt</span> <span class="o">=</span> <span class="s">&quot;https://hacker-news.firebaseio.com/v0/user/&quot;</span>
+<span class="n">url_itm_strt</span> <span class="o">=</span> <span class="s">&quot;https://hacker-news.firebaseio.com/v0/item/&quot;</span>
+<span class="n">url_end</span> <span class="o">=</span> <span class="s">&quot;.json&quot;</span>
+
+<span class="n">kevin</span> <span class="o">=</span> <span class="n">urlopen</span><span class="p">(</span> <span class="n">url_usr_strt</span><span class="o">+</span><span class="n">username</span><span class="o">+</span><span class="n">url_end</span> <span class="p">)</span>
+<span class="n">post</span> <span class="o">=</span> <span class="n">urlopen</span><span class="p">(</span> <span class="n">url_itm_strt</span><span class="o">+</span><span class="n">strt_item</span><span class="o">+</span><span class="n">url_end</span> <span class="p">)</span>
+
+<span class="n">kevin</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">kevin</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+<span class="n">post</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">post</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+
+<span class="k">print</span> <span class="s">&quot;MY HACKER NEWS ACCOUNT:&quot;</span>
+<span class="k">print</span> <span class="s">&quot;-----------------------&quot;</span>
+<span class="n">pprint</span><span class="p">(</span><span class="n">kevin</span><span class="p">)</span>
+
+<span class="k">print</span>
+<span class="k">print</span>
+
+<span class="k">print</span> <span class="s">&quot;MY HACKER NEWS POST:&quot;</span>
+<span class="k">print</span> <span class="s">&quot;-----------------------&quot;</span>
+<span class="n">pprint</span><span class="p">(</span><span class="n">post</span><span class="p">)</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+MY PRETTY KITTY. HIS NAME IS FRANK.
+
+                      __     __,
+                      \,&#96;~&quot;~&#96; /
+      .-=-.           /    . .\
+     / .-. \          {  =    Y}=
+    (_/   \ \          \      /
+           \ \        _/&#96;&apos;&#96;&apos;&#96;b
+            \ &#96;.__.-&apos;&#96;        \-._
+             |            &apos;.__ &#96;&apos;-;_
+             |            _.&apos; &#96;&apos;-.__)
+              \    ;_..-&#96;&apos;/     //  \
+              |   /  /   |     //    |
+              \  \ \__)   \   //    /
+               \__)
+
+MY HACKER NEWS ACCOUNT:
+-----------------------
+{u&apos;created&apos;: 1413737356,
+ u&apos;delay&apos;: 0,
+ u&apos;id&apos;: u&apos;testhater&apos;,
+ u&apos;karma&apos;: 1,
+ u&apos;submitted&apos;: [8478765, 8478763, 8478761, 8478759, 8478757]}
+
+
+MY HACKER NEWS POST:
+-----------------------
+{u&apos;by&apos;: u&apos;testhater&apos;,
+ u&apos;id&apos;: 8478757,
+ u&apos;parent&apos;: 8478079,
+ u&apos;text&apos;: u&apos;nope. everything is terrible.&apos;,
+ u&apos;time&apos;: 1413737378,
+ u&apos;type&apos;: u&apos;comment&apos;}
+
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="building-out-some-functions-to-ping-the-hacker-news-api-and-return-back-some-hate-">Building Out Some Functions to Ping The Hacker News API and Return Back Some Hate.</h1>
+<p>The three main ones I use are to get the comment ID&#39;s accociated with a username, Get all the text from each of the comments and feed them into my model to get predictions, and finally run them through a function that gives me my &quot;hater score&quot;.</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[13]:
+</div>
+<div class="inner_cell">
+<div class="input_area">
+<div class="highlight">
+<pre><span class="c"># Get all of a user&#39;s comments</span>
+<span class="k">def</span> <span class="nf">get_user_comments</span><span class="p">(</span><span class="n">username</span><span class="p">):</span>
+    <span class="n">comments</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">url_usr_strt</span> <span class="o">=</span> <span class="s">&quot;https://hacker-news.firebaseio.com/v0/user/&quot;</span>
+    <span class="n">url_itm_strt</span> <span class="o">=</span> <span class="s">&quot;https://hacker-news.firebaseio.com/v0/item/&quot;</span>
+    <span class="n">url_end</span> <span class="o">=</span> <span class="s">&quot;.json&quot;</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">urlopen</span><span class="p">(</span> <span class="n">url_usr_strt</span><span class="o">+</span><span class="n">username</span><span class="o">+</span><span class="n">url_end</span> <span class="p">)</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span> <span class="n">user</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">user</span><span class="p">[</span><span class="s">&#39;submitted&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;submitted&#39;</span><span class="p">][:</span><span class="mi">101</span><span class="p">]:</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="n">urlopen</span><span class="p">(</span> <span class="n">url_itm_strt</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">+</span><span class="n">url_end</span> <span class="p">)</span>
+            <span class="n">json_item</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span> <span class="n">item</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="p">)</span>
+            <span class="k">if</span> <span class="s">&#39;text&#39;</span> <span class="ow">in</span> <span class="n">json_item</span><span class="p">:</span>
+                <span class="n">comments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">smart_str</span><span class="p">(</span><span class="n">json_item</span><span class="p">[</span><span class="s">&#39;text&#39;</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">comments</span>
+
+<span class="c"># Get all of an item&#39;s comments</span>
+<span class="k">def</span> <span class="nf">get_item_comments</span><span class="p">(</span><span class="n">itemid</span><span class="p">):</span>
+    <span class="n">comments</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">url_itm_strt</span> <span class="o">=</span> <span class="s">&quot;https://hacker-news.firebaseio.com/v0/item/&quot;</span>
+    <span class="n">url_end</span> <span class="o">=</span> <span class="s">&quot;.json&quot;</span>
+    <span class="n">item</span> <span class="o">=</span> <span class="n">urlopen</span><span class="p">(</span> <span class="n">url_itm_strt</span><span class="o">+</span><span class="n">itemid</span><span class="o">+</span><span class="n">url_end</span> <span class="p">)</span>
+    <span class="n">item</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span> <span class="n">item</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="p">)</span>
+    <span class="k">if</span> <span class="s">&#39;kids&#39;</span> <span class="ow">in</span> <span class="n">item</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">item</span><span class="p">[</span><span class="s">&#39;kids&#39;</span><span class="p">]:</span>
+            <span class="n">comment</span> <span class="o">=</span> <span class="n">urlopen</span><span class="p">(</span> <span class="n">url_itm_strt</span><span class="o">+</span><span class="n">smart_str</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">+</span><span class="n">url_end</span> <span class="p">)</span>
+            <span class="n">json_comment</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span> <span class="n">comment</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="p">)</span>
+            <span class="k">if</span> <span class="s">&#39;text&#39;</span> <span class="ow">in</span> <span class="n">json_comment</span><span class="p">:</span>
+                <span class="n">comments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">json_comment</span><span class="p">[</span><span class="s">&#39;text&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="s">&#39;kids&#39;</span> <span class="ow">in</span> <span class="n">json_comment</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">json_comment</span><span class="p">[</span><span class="s">&#39;kids&#39;</span><span class="p">]:</span>
+                    <span class="n">kcomment</span> <span class="o">=</span> <span class="n">urlopen</span><span class="p">(</span> <span class="n">url_itm_strt</span><span class="o">+</span><span class="n">smart_str</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">+</span><span class="n">url_end</span> <span class="p">)</span>
+                    <span class="n">kjson_comment</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span> <span class="n">kcomment</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="p">)</span>
+                    <span class="k">if</span> <span class="s">&#39;text&#39;</span> <span class="ow">in</span> <span class="n">kjson_comment</span><span class="p">:</span>
+                        <span class="n">comments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">kjson_comment</span><span class="p">[</span><span class="s">&#39;text&#39;</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="s">&#39;kids&#39;</span> <span class="ow">in</span> <span class="n">kjson_comment</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">kjson_comment</span><span class="p">[</span><span class="s">&#39;kids&#39;</span><span class="p">]:</span>
+                            <span class="n">k2comment</span> <span class="o">=</span> <span class="n">urlopen</span><span class="p">(</span> <span class="n">url_itm_strt</span><span class="o">+</span><span class="n">smart_str</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">+</span><span class="n">url_end</span> <span class="p">)</span>
+                            <span class="n">k2json_comment</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span> <span class="n">k2comment</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="p">)</span>
+                            <span class="k">if</span> <span class="s">&#39;text&#39;</span> <span class="ow">in</span> <span class="n">k2json_comment</span><span class="p">:</span>
+                                <span class="n">comments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k2json_comment</span><span class="p">[</span><span class="s">&#39;text&#39;</span><span class="p">])</span>
+                            <span class="k">if</span> <span class="s">&#39;kids&#39;</span> <span class="ow">in</span> <span class="n">k2json_comment</span><span class="p">:</span>
+                                <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">k2json_comment</span><span class="p">[</span><span class="s">&#39;kids&#39;</span><span class="p">]:</span>
+                                    <span class="n">k3comment</span> <span class="o">=</span> <span class="n">urlopen</span><span class="p">(</span> <span class="n">url_itm_strt</span><span class="o">+</span><span class="n">smart_str</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">+</span><span class="n">url_end</span> <span class="p">)</span>
+                                    <span class="n">k3json_comment</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span> <span class="n">k3comment</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="p">)</span>
+                                    <span class="k">if</span> <span class="s">&#39;text&#39;</span> <span class="ow">in</span> <span class="n">k2json_comment</span><span class="p">:</span>
+                                        <span class="n">comments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k3json_comment</span><span class="p">[</span><span class="s">&#39;text&#39;</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">comments</span>
+
+<span class="c"># Get a final Hater Score. 100 is the worst, 0 is the best. </span>
+<span class="k">def</span> <span class="nf">calculate_score</span><span class="p">(</span><span class="n">predictions</span><span class="p">):</span>
+    <span class="n">total_score</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">predictions</span><span class="p">:</span>
+        <span class="n">total_score</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">total_score</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+
+<span class="c"># Get all a users comments and run them through my model</span>
+<span class="k">def</span> <span class="nf">user_score</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">my_vect</span><span class="p">,</span> <span class="n">clf</span><span class="p">):</span>
+    <span class="n">comments</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">get_user_comments</span><span class="p">(</span><span class="n">username</span><span class="p">))</span>
+    <span class="n">badwords</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s">&#39;data/my_badwords.csv&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">words</span><span class="p">)</span>
+    <span class="n">badwords_count</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">comments</span><span class="p">:</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="n">el</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)</span>
+        <span class="n">badwords_count</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tokens</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">badwords</span><span class="p">]))</span>
+
+    <span class="n">n_words</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">split</span><span class="p">())</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">comments</span><span class="p">]</span>
+    <span class="n">allcaps</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">w</span><span class="o">.</span><span class="n">isupper</span><span class="p">()</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">comment</span><span class="o">.</span><span class="n">split</span><span class="p">()])</span> <span class="k">for</span> <span class="n">comment</span> <span class="ow">in</span> <span class="n">comments</span><span class="p">]</span>
+    <span class="n">allcaps_ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">allcaps</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">n_words</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+    <span class="n">bad_ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">badwords_count</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">n_words</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+    <span class="n">exclamation</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&quot;!&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">comments</span><span class="p">]</span>
+    <span class="n">addressing</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&quot;@&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">comments</span><span class="p">]</span>
+    <span class="n">spaces</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">comments</span><span class="p">]</span>
+
+    <span class="n">re_badwords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">badwords_count</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">re_n_words</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">n_words</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">re_allcaps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">allcaps</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">re_allcaps_ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">allcaps_ratio</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">re_bad_ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">bad_ratio</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">re_exclamation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">exclamation</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">re_addressing</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">addressing</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">re_spaces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spaces</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+
+    <span class="n">vect</span> <span class="o">=</span> <span class="n">my_vect</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">comments</span><span class="p">)</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">vect</span><span class="o">.</span><span class="n">todense</span><span class="p">(),</span> <span class="n">re_badwords</span><span class="p">))</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">features</span><span class="p">,</span> <span class="n">re_n_words</span><span class="p">))</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">features</span><span class="p">,</span> <span class="n">re_allcaps</span><span class="p">))</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">features</span><span class="p">,</span> <span class="n">re_allcaps_ratio</span><span class="p">))</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">features</span><span class="p">,</span> <span class="n">re_bad_ratio</span><span class="p">))</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">features</span><span class="p">,</span> <span class="n">re_exclamation</span><span class="p">))</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">features</span><span class="p">,</span> <span class="n">re_addressing</span><span class="p">))</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">features</span><span class="p">,</span> <span class="n">re_spaces</span><span class="p">))</span>
+    <span class="n">predictions</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">calculate_score</span><span class="p">(</span><span class="n">predictions</span><span class="p">)</span>
+
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[78]:
+</div>
+<div class="inner_cell">
+<div class="input_area">
+<div class="highlight">
+<pre><span class="c"># Testing out my function. Put in a User Name here (example: &#39;pg&#39;, &#39;vegabook&#39; or &#39;KevinMcAlear&#39;)</span>
+<span class="n">username</span> <span class="o">=</span> <span class="s">&#39;CmonDev&#39;</span>
+<span class="c"># Here is there hater score! 100% is a pure hater.</span>
+<span class="k">print</span> <span class="s">&quot;The Hater Score of&quot;</span><span class="p">,</span><span class="n">username</span><span class="p">,</span><span class="s">&quot;:&quot;</span><span class="p">,</span><span class="n">user_score</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">vect</span><span class="p">,</span> <span class="n">clf</span><span class="p">),</span><span class="s">&quot;%&quot;</span>
+<span class="k">print</span>
+<span class="k">print</span>
+
+<span class="c"># Here is there most reacent comments maxed out at 100.</span>
+<span class="n">user_comments</span> <span class="o">=</span> <span class="n">get_user_comments</span><span class="p">(</span><span class="n">username</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">user_comments</span><span class="p">:</span>
+    <span class="k">print</span> <span class="n">c</span>
+    <span class="k">print</span> <span class="s">&quot;---------------------&quot;</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+The Hater Score of CmonDev : 4.53430404659 %
+
+
+The damn thing hasn&amp;#x27;t even been released yet.
+---------------------
+&amp;quot;Unity brings the cutting edge graphics&amp;quot; - huh?&lt;p&gt;Great initiative though.
+---------------------
+&amp;quot;I&amp;#x27;ve received nothing but positive feedback...&amp;quot;&lt;p&gt;People are generally nice because it is considered polite.
+---------------------
+More like: &amp;quot;What the fuck is wrong with this guy. He poses a complex ethical dilemma. It makes me think and thinking hurts my brain. I will better pretend he is some sort of creep.&amp;quot;
+---------------------
+And why would an intelligent being with a free will still hang around?
+---------------------
+As calculated as the Nexus-muting &amp;quot;leak&amp;quot;.
+---------------------
+We are at the high of the HTML5&amp;#x2F;JS hype cycle.
+---------------------
+If it&amp;#x27;s just an expression than maybe &amp;quot;forking&amp;quot; is also just an expression with a random meaning? Either that or he never was a BDFL.
+---------------------
+
+---------------------
+Well, at least not something weak&amp;#x2F;dynamic, so why not.
+---------------------
+The Visual Studio 2020 might be completely in-browser unfortunately :(.
+---------------------
+What is the out-of-box solution for adorner decorators, then?
+---------------------
+That simple pattern is already implemented:&lt;p&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/Reactor_pattern#Java&quot; rel=&quot;nofollow&quot;&gt;http:&amp;#x2F;&amp;#x2F;en.wikipedia.org&amp;#x2F;wiki&amp;#x2F;Reactor_pattern#Java&lt;/a&gt;
+---------------------
+&amp;quot;useless organ&amp;quot; - yet revolution did not remove it. Did modern science finally decide whether caffeine or fat are ultimately good&amp;#x2F;bad? Because they seem to be changing their opinion every year.
+---------------------
+&amp;gt; &lt;i&gt;So Atwood&amp;#x27;s Law again.&lt;/i&gt;&lt;p&gt;Not really. There is a big difference between writing manually and transpiling into a dialect.
+---------------------
+Did you try the Voxatron one?
+---------------------
+Just share your games with us and you will get a plenty of useful feedback. It must be one of those multi-million titles - so exciting!
+---------------------
+Only a small comment: where are you going to put your views? Are you going to use separate folders for views and template views (similar to WPF data templates)?
+---------------------
+&amp;gt; &lt;i&gt;&amp;quot;I have even come to see the beauty in the ugly that is PHP.&amp;quot;&lt;/i&gt;&lt;p&gt;I recommend stopping immediately and going through a 6 month of therapeutic Scala&amp;#x2F;F#-only development.
+---------------------
+After reading and based on my experience: &amp;quot;&lt;i&gt;Web&lt;/i&gt; programming is terrible; so learn to avoid it. Focus on a nice server-side language (not PHP).&amp;quot;
+---------------------
+Did you choose Node.js because you expect it to address the problem it is meant to address or for other reasons (fashion, learning, reduce hiring costs)?&lt;p&gt;Sorry, cannot comment on code too much as I don&amp;#x27;t have TS experience. Probably not enough code to spot any obvious problems.
+---------------------
+
+---------------------
+&amp;quot;... of Anglo-american ...&amp;quot;
+---------------------
+&amp;gt; &lt;i&gt;Yeah, those assembly-writing badasses making $500k at HFT funds are really hurting.&lt;/i&gt;&lt;p&gt;Yeah, all ~100 of them.&lt;p&gt;Better normal Java than it&amp;#x27;s scripting counterpart though (the assembly of the web).
+---------------------
+At least don&amp;#x27;t write the code in an assembly of your times :).
+---------------------
+Isn&amp;#x27;t it better to solve tough niche problems while being on a salary or already rich and experienced instead of adding that to an already hard problem of starting up a business?
+---------------------
+They are pretty happy with Apple&amp;#x27;s empire. You don&amp;#x27;t need Microsoft&amp;#x27;s hardware to build stuff for Windows though.
+---------------------
+But those guys were vesting not just resting. Salary is not same.
+---------------------
+They should assign them to work on an ultra-violent mini shooter with an unreasonable number of different weapons and monsters.
+---------------------
+Yes, I hate the ceremony. Oh the sacred ancient language that is so standard we can never touch it because Open Web!
+---------------------
+It&amp;#x27;s a legacy language now. Time to let go.
+---------------------
+No, I think they dropped this since Vista. There is a pinch of old-school, you are right.
+---------------------
+&lt;i&gt;&amp;quot;Most senior board positions in the corporate world are held by men&amp;quot;&lt;/i&gt;&lt;p&gt;Why focus on gender? I think every board should have first-generation immigrants, people of different faiths, different races and genders and most importantly no more than 50% should come from rich backgrounds and prestigious universities.
+---------------------
+This is so sad. Why not say this:&lt;p&gt;&amp;quot;I believe all &lt;i&gt;intelligent beings&lt;/i&gt; should get equal pay for equal work.&amp;quot;&lt;p&gt;This includes races, genders, being offshore&amp;#x2F;onshore, being a shareholder or an employee etc.
+---------------------
+&amp;quot;with my greatest creation&amp;quot; - maybe he doesn&amp;#x27;t want this to be his greatest creation? Hi is only 35.
+---------------------
+Did you at least like the design language they borrowed from Microsoft?
+---------------------
+That is thousands of proper native apps, that are available today.
+---------------------
+Unfortunately it is part of their push to lock down the web. Lock it down to legacy languages - JavaScript and HTML. Transpilation is of course not an answer, because it is not nearly same development experience. I hope mainstream platform providers and democratic solution providers such as Xamarin will keep on their good work in letting us use the languages we love, be it Scala, F#, C# on any other as beautiful.
+---------------------
+But it seems people capable of modern way of thinking start to emerge, e.g. Tim Sweeney of Epic Games:&lt;p&gt;&amp;quot;– Will gladly sacrifice 10% of our performance
+for 10% higher productivity&amp;quot;&lt;p&gt;&lt;a href=&quot;http://www.cs.princeton.edu/~dpw/popl/06/Tim-POPL.ppt&quot; rel=&quot;nofollow&quot;&gt;http:&amp;#x2F;&amp;#x2F;www.cs.princeton.edu&amp;#x2F;~dpw&amp;#x2F;popl&amp;#x2F;06&amp;#x2F;Tim-POPL.ppt&lt;/a&gt;
+---------------------
+This is so true! When this type of developers starts talking about design of the architecture they start discussing optimization on second minute.&lt;p&gt;Here is a good example (it&amp;#x27;s a good blog and people are talented though):&lt;p&gt;&lt;a href=&quot;http://bitsquid.blogspot.co.uk/2014/08/building-data-oriented-entity-system.html&quot; rel=&quot;nofollow&quot;&gt;http:&amp;#x2F;&amp;#x2F;bitsquid.blogspot.co.uk&amp;#x2F;2014&amp;#x2F;08&amp;#x2F;building-data-oriente...&lt;/a&gt;
+---------------------
+WP is an uncool but useful friend of MS now :(.
+---------------------
+There is a whole business of &amp;#x27;integrating&amp;#x27; the software products that are kind of ready (much more so than OSS) - ERP (Dynamics, SAP etc.).
+---------------------
+&amp;quot;...if only people were not starving in the streets...&amp;quot;&lt;p&gt;You have a bigger problem with IT then investment banking and international politics?&lt;p&gt;I am personally very happy that once in a while engineers are getting a &lt;i&gt;kind of&lt;/i&gt; fair deal. Of course let&amp;#x27;s not forget that salaries in Silicon Valley were artificially suppressed for a while in an illegal agreement between the likes of Google and Apple. So being underpaid is what we should be really complaining about.
+---------------------
+Yep, not so relevant now given the announcements since then.
+---------------------
+&amp;quot;to the best developer tools&amp;quot; - a bit far-fetched for very many of those.
+---------------------
+When I said &amp;quot;managed&amp;quot; I actually meant &amp;quot;first-class CLR&amp;#x2F;JVM&amp;#x2F;Mono support&amp;quot;.
+---------------------
+Yes, when thinking about a modern managed multi-paradigm, multi-typed, multi-platform language the choice is pretty much limited to Scala, C# and F#.
+---------------------
+If you mention that Angular was built by Google devs, then please mention that MVVM was invented by Microsoft devs (WPF):&lt;p&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/Model_View_ViewModel&quot; rel=&quot;nofollow&quot;&gt;http:&amp;#x2F;&amp;#x2F;en.wikipedia.org&amp;#x2F;wiki&amp;#x2F;Model_View_ViewModel&lt;/a&gt;
+---------------------
+Forgotten? This is the fifth time this year alone I am reading about both (Hopper is a bit overrated and part of military propaganda). Besides how could someone who knows about Babbage wouldn&amp;#x27;t know about Lovelace?
+---------------------
+Such beauty: &lt;a href=&quot;http://wtfjs.com&quot; rel=&quot;nofollow&quot;&gt;http:&amp;#x2F;&amp;#x2F;wtfjs.com&lt;/a&gt;
+---------------------
+Well, both releases are nice, thanks for posting :)
+---------------------
+
+---------------------
+Kind of based on an assumption that using JavaScript at all is a good thing. For me the idea is to avoid using it where possible. Can we stop the web monopolisation&amp;#x2F;locking&amp;#x2F;despotism and drop specific languages from titles and ideas? How about &amp;quot;Isomorphic Applications that give developers freedom and a choice of language&amp;quot;?
+---------------------
+The only thing sadder would be programming a strong AI or brain-computer interfaces in javascript. Hopefully the disaster will be stopped way before.
+---------------------
+In a way any Python program is probabilistic.
+---------------------
+Oh, it&amp;#x27;s JavaScript...
+---------------------
+I&amp;#x27;d like tabs to go around the browser - not just the top edge.
+---------------------
+Wow, speech recognition in a Turing-complete language. Amazing.
+---------------------
+Well, as long as I don&amp;#x27;t have to use HTML and JavaScript.
+---------------------
+Unfortunately, this is not a proper replacement for the Axum project that they killed for some lame reason:&lt;p&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/Axum_(programming_language)&quot; rel=&quot;nofollow&quot;&gt;http:&amp;#x2F;&amp;#x2F;en.wikipedia.org&amp;#x2F;wiki&amp;#x2F;Axum_(programming_language)&lt;/a&gt;&lt;p&gt;&lt;a href=&quot;http://download.microsoft.com/download/B/D/5/BD51FFB2-C777-43B0-AC24-BDE3C88E231F/Axum%20Programmers%20Guide.pdf&quot; rel=&quot;nofollow&quot;&gt;http:&amp;#x2F;&amp;#x2F;download.microsoft.com&amp;#x2F;download&amp;#x2F;B&amp;#x2F;D&amp;#x2F;5&amp;#x2F;BD51FFB2-C777-4...&lt;/a&gt;&lt;p&gt;Now people will be choosing Akka.NET instead.
+---------------------
+&amp;quot;Light Table will continue to go on strong.&amp;quot;&lt;p&gt;Sure.
+---------------------
+Good article, not too much anti-russian speech.&lt;p&gt;Also see the space laser handgun: &lt;a href=&quot;http://englishrussia.com/2013/10/05/laser-gun-for-a-soviet-cosmonaut&quot; rel=&quot;nofollow&quot;&gt;http:&amp;#x2F;&amp;#x2F;englishrussia.com&amp;#x2F;2013&amp;#x2F;10&amp;#x2F;05&amp;#x2F;laser-gun-for-a-soviet-c...&lt;/a&gt;
+---------------------
+Rust is meant to be practical, Haskell is more for academia (horrible ML syntax etc.).
+---------------------
+E.g. iOS lets me use: Objective C, Swift, C#, F#, Java, Scala. All compiling to lower-level code that is either native to platform or native to the language.&lt;p&gt;Web lets me use: only JavaScript (that is written manually or  transpiled).&lt;p&gt;Yes I will have to pay extra for some solutions, but I don&amp;#x27;t mind doing this as opposed to using language that I hate.&lt;p&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/Ad_hominem&quot; rel=&quot;nofollow&quot;&gt;http:&amp;#x2F;&amp;#x2F;en.wikipedia.org&amp;#x2F;wiki&amp;#x2F;Ad_hominem&lt;/a&gt;
+---------------------
+It&amp;#x27;s a choice between restricted standards that hinder technology innovation and restricted markets that hinder business.&lt;p&gt;As a technologist I hope that de-facto monopolic legacy poorly-designed technologies (JS and HTML) will give way to new better technologies.&lt;p&gt;I am very happy that at least mobile still gives developers many options - mostly without lame transpilation.
+---------------------
+Some dude said they are bad?
+---------------------
+Also two very well supported versions of VM with distinct advantages:&lt;p&gt;1) Mono - deploy to every major mobile platform using a well-defined single-vendor pipeline.&lt;p&gt;2) .NET - unmatched performance on Windows.
+---------------------
+JVM runs faster on some minor consumer platforms such as Linux, but that is pretty much it.
+---------------------
+Not sure what is so difficult: &lt;a href=&quot;http://downloadvisualstudio.com&quot; rel=&quot;nofollow&quot;&gt;http:&amp;#x2F;&amp;#x2F;downloadvisualstudio.com&lt;/a&gt;
+---------------------
+&amp;quot;you&amp;#x27;re not free to booby trap the path to your front door&amp;quot;&lt;p&gt;In UK you can&amp;#x27;t even booby trap &lt;i&gt;inside&lt;/i&gt; of your house. Even killing someone who is trying to kill you is not recommended.
+---------------------
+Suggested name: Virtual Keyboards Club.
+---------------------
+In some way they are quite honest. You can see the offer very clearly: work with brogrammers for a low salary.
+---------------------
+TL;DR: because you need professionals for modern CG and programming, professionals deserve good pay and you need a lot of them, also considerable marketing is required for non-innovative games.
+---------------------
+I hope one day speed of trade execution will depend on beating cancer. Those guys will solve it in a month.
+---------------------
+Thanks for generalizing. I assume everyone in USA owns a shotgun and a trailer?
+---------------------
+&amp;quot;humanizes the people of USSR&amp;quot; - so you are saying they weren&amp;#x27;t actual humans?
+---------------------
+&amp;quot;monstrosity&amp;quot; is not an explanation, CLR is a state of the art technology. What would you suggest instead of this? A dynamic language monstrosity? A JVM monstrosity? A legacy language (C++&amp;#x2F;JS) monstrosity? An unestablished language monstrosity? Some other kind of monstrosity?
+---------------------
+&amp;quot;...Minecraft is exactly the kind of game he&amp;#x27;s talking about...&amp;quot;&lt;p&gt;I guess having a flexible system of optional plots is better than no plot whatsoever.
+---------------------
+Making an issue&lt;p&gt;&amp;quot;...in a market that moves very fast, saturated with product...&amp;quot;&lt;p&gt;even worse&lt;p&gt;&amp;quot;...there has been a counterpoint: the wave of DRM-free indies...&amp;quot;&lt;p&gt;Look at Steam Greenlight.
+---------------------
+It has to do with wetware (biological computers).
+---------------------
+Since Microsoft doesn&amp;#x27;t care about WPF anymore people started pretending they like HTML5 and JS, kinda like &amp;quot;hey, dirt doesn&amp;#x27;t taste &lt;i&gt;that&lt;/i&gt; bad if you give it some time!&amp;quot;.
+---------------------
+TL;DR version: &lt;a href=&quot;https://roslyn.codeplex.com/wikipage?title=Language%20Feature%20Status&amp;amp;referringTitle=Documentation&quot; rel=&quot;nofollow&quot;&gt;https:&amp;#x2F;&amp;#x2F;roslyn.codeplex.com&amp;#x2F;wikipage?title=Language%20Featur...&lt;/a&gt;
+---------------------
+The whole OOP vs FP argument is like food vs drinks argument. I am empowered and capable of using both. What is the problem?
+---------------------
+Staged demo proves a staged demo?
+---------------------
+Buy a tank. Travel the world. Meet interesting people and ... them.
+---------------------
+Very true, at least the rest of people were smart enough to keep evolving their concepts instead of going to mainstream same ol&amp;#x27;.
+---------------------
+Now we just need to establish what &amp;quot;adult&amp;quot; means. Which country&amp;#x27;s interpretation at which point of time in history do you like the best?
+---------------------
+The ad is an idea that someone knows what you need better than yourself. I prefer need-based research.
+---------------------
+It must be about some ideal world, where people become managers to do better good (as opposed to e.g. maximizing bonus or doing more talking than working).
+---------------------
+Random sub-second pauses on Nexus 7 2013.
+---------------------
+I guess learning to utilize all the available cores is more important.
+---------------------
+People are willing to pay for HTML5 games?!
+---------------------
+Practical answer: having to support one more country flag, one more ISO country code and maybe one more english flavour locale or a currency :).
+---------------------
+That&amp;#x27;s the biggest problem with pure FRP: people like to talk about it and make libraries for it, but non-trivial game implementations are rare. I am still not sure what is supposed to be a unit of re-usability (like components&amp;#x2F;systems in ECS) in FRP?
+---------------------
+Try finding the designers behind Microsoft&amp;#x27;s Metro. Based on the amount of copying by iOS and Android since then, they must be one of the best.
+---------------------
+
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="doing-everything-manually-to-one-time-to-be-safe-">Doing Everything Manually To One Time To Be Safe.</h1>
+<p>Everything seemed to work great with my nice functions! But to be sure let&#39;s manually do what my functions just did to be sure.</p>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[51]:
+</div>
+<div class="inner_cell">
+<div class="input_area">
+<div class="highlight">
+<pre><span class="c"># Starting the transforming of my comments</span>
+<span class="n">test</span> <span class="o">=</span> <span class="n">vect</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">user_comments</span><span class="p">)</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[74]:
+</div>
+<div class="inner_cell">
+<div class="input_area">
+<div class="highlight">
+<pre><span class="c"># Running through my feature manipulation manually </span>
+<span class="c">#  *NOTE: This time I printed the features out each transformation I do to them so you can kind of see how they change.</span>
+
+<span class="n">p_badwords_count</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">user_comments</span><span class="p">:</span>
+    <span class="n">tokens</span> <span class="o">=</span> <span class="n">el</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)</span>
+    <span class="n">p_badwords_count</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tokens</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">badwords</span><span class="p">]))</span>
+
+<span class="n">p_n_words</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">split</span><span class="p">())</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">user_comments</span><span class="p">]</span>
+<span class="n">p_allcaps</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">w</span><span class="o">.</span><span class="n">isupper</span><span class="p">()</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">comment</span><span class="o">.</span><span class="n">split</span><span class="p">()])</span> <span class="k">for</span> <span class="n">comment</span> <span class="ow">in</span> <span class="n">user_comments</span><span class="p">]</span>
+<span class="n">p_allcaps_ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">p_allcaps</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">p_n_words</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+<span class="n">p_bad_ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">p_badwords_count</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">p_n_words</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+<span class="n">p_exclamation</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&quot;!&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">user_comments</span><span class="p">]</span>
+<span class="n">p_addressing</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&quot;@&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">user_comments</span><span class="p">]</span>
+<span class="n">p_spaces</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">user_comments</span><span class="p">]</span>
+
+<span class="n">p_re_badwords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">p_badwords_count</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">p_badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">p_re_n_words</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">p_n_words</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">p_badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">p_re_allcaps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">p_allcaps</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">p_badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">p_re_allcaps_ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">p_allcaps_ratio</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">p_badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">p_re_bad_ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">p_bad_ratio</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">p_badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">p_re_exclamation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">p_exclamation</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">p_badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">p_re_addressing</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">p_addressing</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">p_badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">p_re_spaces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">p_spaces</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">p_badwords_count</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+
+<span class="n">X_p_transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">test</span><span class="o">.</span><span class="n">todense</span><span class="p">(),</span> <span class="n">p_re_badwords</span><span class="p">))</span>
+<span class="k">print</span> <span class="s">&quot;Adding In badwords&quot;</span>
+<span class="k">print</span> <span class="s">&quot;-----------------&quot;</span>
+<span class="k">print</span> <span class="n">X_p_transform</span>
+<span class="k">print</span>
+<span class="k">print</span>
+<span class="n">X_p_transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">X_p_transform</span><span class="p">,</span> <span class="n">p_re_n_words</span><span class="p">))</span>
+<span class="k">print</span> <span class="s">&quot;Adding In n_words&quot;</span>
+<span class="k">print</span> <span class="s">&quot;-----------------&quot;</span>
+<span class="k">print</span> <span class="n">X_p_transform</span>
+<span class="k">print</span>
+<span class="k">print</span>
+<span class="n">X_p_transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">X_p_transform</span><span class="p">,</span> <span class="n">p_re_allcaps</span><span class="p">))</span>
+<span class="k">print</span> <span class="s">&quot;Adding In allcaps&quot;</span>
+<span class="k">print</span> <span class="s">&quot;-----------------&quot;</span>
+<span class="k">print</span> <span class="n">X_p_transform</span>
+<span class="k">print</span>
+<span class="k">print</span>
+<span class="n">X_p_transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">X_p_transform</span><span class="p">,</span> <span class="n">p_re_allcaps_ratio</span><span class="p">))</span>
+<span class="k">print</span> <span class="s">&quot;Adding In allcaps_ratio&quot;</span>
+<span class="k">print</span> <span class="s">&quot;-----------------&quot;</span>
+<span class="k">print</span> <span class="n">X_p_transform</span>
+<span class="k">print</span>
+<span class="k">print</span>
+<span class="n">X_p_transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">X_p_transform</span><span class="p">,</span> <span class="n">p_re_bad_ratio</span><span class="p">))</span>
+<span class="k">print</span> <span class="s">&quot;Adding In bad_ratio&quot;</span>
+<span class="k">print</span> <span class="s">&quot;-----------------&quot;</span>
+<span class="k">print</span> <span class="n">X_p_transform</span>
+<span class="k">print</span>
+<span class="k">print</span>
+<span class="n">X_p_transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">X_p_transform</span><span class="p">,</span> <span class="n">p_re_exclamation</span><span class="p">))</span>
+<span class="k">print</span> <span class="s">&quot;Adding In exclamation&quot;</span>
+<span class="k">print</span> <span class="s">&quot;-----------------&quot;</span>
+<span class="k">print</span> <span class="n">X_p_transform</span>
+<span class="k">print</span>
+<span class="k">print</span>
+<span class="n">X_p_transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">X_p_transform</span><span class="p">,</span> <span class="n">p_re_addressing</span><span class="p">))</span>
+<span class="k">print</span> <span class="s">&quot;Adding In addressing&quot;</span>
+<span class="k">print</span> <span class="s">&quot;-----------------&quot;</span>
+<span class="k">print</span> <span class="n">X_test_transform</span>
+<span class="k">print</span>
+<span class="k">print</span>
+<span class="n">X_p_transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">X_p_transform</span><span class="p">,</span> <span class="n">p_re_spaces</span><span class="p">))</span>
+<span class="k">print</span> <span class="s">&quot;Adding In spaces&quot;</span>
+<span class="k">print</span> <span class="s">&quot;-----------------&quot;</span>
+<span class="k">print</span> <span class="n">X_p_transform</span>
+<span class="k">print</span>
+<span class="k">print</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+Adding In badwords
+-----------------
+[[0 0 0 ..., 0 0 0]
+ [0 0 0 ..., 0 0 0]
+ [0 0 0 ..., 0 0 0]
+ ...,
+ [0 0 0 ..., 0 0 0]
+ [0 0 0 ..., 0 0 0]
+ [0 0 0 ..., 0 0 0]]
+
+
+Adding In n_words
+-----------------
+[[  0   0   0 ...,   0   0   8]
+ [  0   0   0 ...,   0   0  21]
+ [  0   0   0 ...,   0   0   3]
+ ...,
+ [  0   0   0 ...,   0   0  16]
+ [  0   0   0 ...,   0   0 100]
+ [  0   0   0 ...,   0   0  30]]
+
+
+Adding In allcaps
+-----------------
+[[   0.    0.    0. ...,    0.    8.    0.]
+ [   0.    0.    0. ...,    0.   21.    3.]
+ [   0.    0.    0. ...,    0.    3.    0.]
+ ...,
+ [   0.    0.    0. ...,    0.   16.    0.]
+ [   0.    0.    0. ...,    0.  100.    1.]
+ [   0.    0.    0. ...,    0.   30.    0.]]
+
+
+Adding In allcaps_ratio
+-----------------
+[[  0.00000000e+00   0.00000000e+00   0.00000000e+00 ...,   8.00000000e+00
+    0.00000000e+00   0.00000000e+00]
+ [  0.00000000e+00   0.00000000e+00   0.00000000e+00 ...,   2.10000000e+01
+    3.00000000e+00   1.42857143e-01]
+ [  0.00000000e+00   0.00000000e+00   0.00000000e+00 ...,   3.00000000e+00
+    0.00000000e+00   0.00000000e+00]
+ ...,
+ [  0.00000000e+00   0.00000000e+00   0.00000000e+00 ...,   1.60000000e+01
+    0.00000000e+00   0.00000000e+00]
+ [  0.00000000e+00   0.00000000e+00   0.00000000e+00 ...,   1.00000000e+02
+    1.00000000e+00   1.00000000e-02]
+ [  0.00000000e+00   0.00000000e+00   0.00000000e+00 ...,   3.00000000e+01
+    0.00000000e+00   0.00000000e+00]]
+
+
+Adding In bad_ratio
+-----------------
+[[ 0.          0.          0.         ...,  0.          0.          0.        ]
+ [ 0.          0.          0.         ...,  3.          0.14285714  0.        ]
+ [ 0.          0.          0.         ...,  0.          0.          0.        ]
+ ...,
+ [ 0.          0.          0.         ...,  0.          0.          0.        ]
+ [ 0.          0.          0.         ...,  1.          0.01        0.        ]
+ [ 0.          0.          0.         ...,  0.          0.          0.        ]]
+
+
+Adding In exclamation
+-----------------
+[[ 0.          0.          0.         ...,  0.          0.          0.        ]
+ [ 0.          0.          0.         ...,  0.14285714  0.          0.        ]
+ [ 0.          0.          0.         ...,  0.          0.          0.        ]
+ ...,
+ [ 0.          0.          0.         ...,  0.          0.          0.        ]
+ [ 0.          0.          0.         ...,  0.01        0.          0.        ]
+ [ 0.          0.          0.         ...,  0.          0.          0.        ]]
+
+
+Adding In addressing
+-----------------
+[[   0.    0.    0. ...,    0.    0.  335.]
+ [   0.    0.    0. ...,    0.    1.   25.]
+ [   0.    0.    0. ...,    0.    0.   21.]
+ ...,
+ [   0.    0.    0. ...,    0.    0.    7.]
+ [   0.    0.    0. ...,    2.    0.   51.]
+ [   0.    0.    0. ...,    0.    0.  187.]]
+
+
+Adding In spaces
+-----------------
+[[   0.    0.    0. ...,    0.    0.    7.]
+ [   0.    0.    0. ...,    0.    0.   21.]
+ [   0.    0.    0. ...,    0.    0.    2.]
+ ...,
+ [   0.    0.    0. ...,    0.    0.   16.]
+ [   0.    0.    0. ...,    0.    0.  102.]
+ [   0.    0.    0. ...,    0.    0.   29.]]
+
+
+
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[75]:
+</div>
+<div class="inner_cell">
+<div class="input_area">
+<div class="highlight">
+<pre><span class="c"># Predicting the comments insult probaility</span>
+<span class="n">test_predictions</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">X_p_transform</span><span class="p">)</span>  <span class="p">)</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[76]:
+</div>
+<div class="inner_cell">
+<div class="input_area">
+<div class="highlight">
+<pre><span class="c"># Seeing what some predictions look like</span>
+<span class="n">test_predictions</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="prompt output_prompt">
+    Out[76]:</div>
+<div class="output_text output_subarea output_pyout">
+<pre>
+array([[ 0.93827726,  0.06172274],
+       [ 0.99678827,  0.00321173],
+       [ 0.93641375,  0.06358625],
+       [ 0.94203673,  0.05796327],
+       [ 0.99731428,  0.00268572]])
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[77]:
+</div>
+<div class="inner_cell">
+<div class="input_area">
+<div class="highlight">
+<pre><span class="c"># Finally Evaulating the hater score manually.</span>
+<span class="k">print</span> <span class="s">&quot;The Probability of&quot;</span><span class="p">,</span><span class="n">username</span><span class="p">,</span><span class="s">&quot;being a hater is:&quot;</span><span class="p">,</span> <span class="n">calculate_score</span><span class="p">(</span><span class="n">test_predictions</span><span class="p">),</span><span class="s">&quot;%&quot;</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="output_wrapper">
+<div class="output">
+<div class="output_area">
+<div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+The Probability of pg being a hater is: 2.76497951931 %
+
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="some-final-thoughts-">Some Final Thoughts.</h1>
+<ul>
+<li>Sarcasm is hard to detect.</li>
+<li>Using Pipelines when building my own meta-features is difficult.</li>
+<li>Most people on Hacker News are pretty nice people.</li>
+<li>I want to build in more training data from comments in Hacker News using the web app.</li>
+</ul>
+<p>Well, that's it for now. I hope this was informative. Feel free to reach out and ask me anything. And remember, all of my code for this project is in <a href="https://github.com/kevinmcalear/hater_news">My GitHub Repo</a>. I made a detailed README.md file so you can run the app locally and try it out for yourself. You can even mess with pickling, but that is for another day...</p>
+</div>
+</div>
+</div></div>
+</p></div>

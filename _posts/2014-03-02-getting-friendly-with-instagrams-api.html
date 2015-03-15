@@ -1,0 +1,336 @@
+---
+layout: post
+title: Getting Friendly With Instagram’s API
+date: 2014-03-02 21:30:08.000000000 -05:00
+categories:
+- Code
+- Data
+- Software
+- Web
+tags: []
+status: publish
+type: post
+published: true
+meta:
+  _edit_last: '1'
+  dp_article_share_disable: ''
+  dp_article_share_position: ''
+  dp_article_share_counter: ''
+  dp_article_share_tooltip: ''
+  share_gplus: '0'
+  share_twitter: '1'
+  share_linkedin: '4'
+  share_facebook: '4'
+  share_pinterest: '0'
+  share_delicious: '0'
+  share_stumbleupon: '0'
+  share_digg: '0'
+  share_reddit: '0'
+  share_buffer: '0'
+  share_vk: '0'
+  share_total: '9'
+  _wpas_done_all: '1'
+  _thumbnail_id: '2108'
+  page_header_background_img: http://kevinmcalear.com/thoughts/wp-content/uploads/2014/03/Instagram-logo2-copy.jpg
+  page_header_content: "[big_title]From #hashtags to Selfies in Rails.[/big_title]"
+  voted_IP: a:6:{s:15:"198.228.200.153";i:1393814786;s:15:"198.228.200.164";i:1393814820;s:15:"198.228.201.171";i:1393814851;s:15:"198.228.200.147";i:1393814883;s:13:"184.75.13.133";i:1403708177;s:14:"161.38.221.126";i:1424362231;}
+  votes_count: '6'
+author:
+  login: kevin
+  email: kevin.mcalear@gmail.com
+  display_name: Kevin
+  first_name: Kevin
+  last_name: McAlear
+excerpt: !ruby/object:Hpricot::Doc
+  options: {}
+---
+<section>
+<section>
+<div>
+<h2>Instagram and You.</h2>
+<p>The power of social media is fantastic and people are using Instagram to do some pretty amazing things. Companies are making <a href="http://instaprint.me/mosaics/" target="_blank" rel="nofollow">real-time mosaics</a> for events and parties, printing out Instagram photos using <a href="http://instaprint.me/" target="_blank" rel="nofollow">instaprint</a>. People are <a href="http://www.casetagram.com/landing_bis?utm_expid=80074162-4.Jp2FVFo8TsOxsez7hnYOvA.1&amp;utm_referrer=http%3A%2F%2Fwww.casetagram.com%2Flanding_bis" target="_blank" rel="nofollow">creating iPhone cases</a> with their own pictures. Marketers are building platforms to creatively <a href="http://seenmoment.com/" target="_blank" rel="nofollow">communicate to their customers</a>. Others are finding ways to <a href="https://copygr.am/" target="_blank" rel="nofollow">take Instagram pictures physical</a>.</p>
+<p>Developers are still exploring what can be done, making things like a real-time <a href="http://now.jit.su/" target="_blank" rel="nofollow">exploration of places through the eyes of Instagram</a>, <a href="http://instawar.org/" target="_blank" rel="nofollow">battling pictures against each other</a>, making your <a href="http://screenstagram.s3.amazonaws.com/download.html" target="_blank" rel="nofollow">background your feed</a>, enjoying the <a href="http://instac.at/" target="_blank" rel="nofollow">cats of Instagram</a>, or even trying to help people with an <a href="http://hashback.herokuapp.com/" target="_blank" rel="nofollow">idea I’ve been working on</a>. The point is, now, more than ever, you can do some amazing stuff. Enough talking, lets get into it shall we?</p>
+<h2></h2>
+<h2>The Breakdown</h2>
+<p>I will be covering two aspects of this API, <strong><em>the tools</em></strong> I work with and <strong><em>the process</em></strong> of using the API in a program. I’m going to focus on getting you up and running, and assume that the ultimate goal is to be able to feed yourself and use this as a reference once you really start digging into Instagram’s API.</p>
+<p>Full disclosure, I’m still learning myself. I am actually in the middle of an <a href="https://generalassemb.ly/education/web-development-immersive" target="_blank" rel="nofollow">intensive web development program</a> and am still solidifying my own skills. With that said, Enjoy!</p>
+<h2></h2>
+<h2>The Tools</h2>
+<p>I work in a <a href="http://ruby-doc.org/" target="_blank" rel="nofollow">Ruby</a> environment, using the <a href="http://rubyonrails.org/" target="_blank" rel="nofollow">Rails</a> framework, and hosting everything with <a href="https://www.heroku.com/" target="_blank" rel="nofollow">Heroku</a> (which uses <a href="http://www.postgresql.org/" target="_blank" rel="nofollow">PostgreSQL</a>) for web apps. This will be the most useful for someone using something similar but not required to just understand Instagram’s API. Lets break down the tools.</p>
+</div>
+</section>
+<section>
+<div>
+<hr />
+</div>
+<div>
+<p>&nbsp;</p>
+<p><a href="http://johnnunemaker.com/httparty/" target="_blank" rel="nofollow"><strong>HTTParty</strong></a><strong> - Makes http fun again! One-line http magic.</strong></p>
+<p>&nbsp;</p>
+<p>You can query web services, parse the output, and return the response as a Ruby data-structure. <em>(On as side note: if data doesn’t come back in a usable data structure, i.e. one huge string, you can use the </em><a href="https://github.com/flori/json/tree/master" target="_blank" rel="nofollow"><em>JSON ruby gem</em></a><em> to convert the string into json. Luckily we don’t need to with this API.)</em></p>
+<p>&nbsp;</p>
+<p>You can run request like so:</p>
+<pre>HTTParty.get(‘http://SOMEAPI.com/WHATEVER_ASPECT_YOURE_USING’)</pre>
+<p>&nbsp;</p>
+<p>Just so you know, if you don’t want to use HTTParty, there is actually an <a href="https://github.com/Instagram/instagram-ruby-gem" target="_blank" rel="nofollow">Instagram Gem</a> you could use instead.</p>
+</div>
+</section>
+<section>
+<div>
+<hr />
+</div>
+<div>
+<p>&nbsp;</p>
+<p><a href="http://instagram.com/developer/endpoints/" target="_blank" rel="nofollow"><strong>Instagram’s API</strong></a><strong> - Where data comes from. All selfie info is here.</strong></p>
+<p>&nbsp;</p>
+<p>Instagram has a well document, decently straight-forward API. Endpoints are only accessible via https<strong> </strong>and are located at <em>api.instagram.com</em>.<strong> </strong>The basics of that API call look like the following:</p>
+<p>&nbsp;</p>
+<p>You can grab the most popular photos at the moment by accessing the following URL with your <a href="http://instagram.com/developer/clients/manage/" target="_blank" rel="nofollow">client ID</a>.</p>
+<p>&nbsp;</p>
+<pre>https://api.instagram.com/v1/media/popular?client_id=CLIENT-ID</pre>
+<p>&nbsp;</p>
+<p><em>*On a side note:</em> Make sure you get a client ID right away. It is pretty straight forward but it can be confusing if you don’t know any better. You can <a href="http://instagram.com/developer/clients/register/" target="_blank" rel="nofollow">get one here</a> and if you want to use Authentication via Instagram you need to <a href="http://instagram.com/developer/authentication/" target="_blank" rel="nofollow">get a an Access_Token here</a>.</p>
+</div>
+</section>
+<section>
+<div>
+<hr />
+</div>
+<div>
+<p>&nbsp;</p>
+<p><a href="http://guides.rubyonrails.org/active_record_basics.html" target="_blank" rel="nofollow"><strong>Active Record</strong></a><strong> - The </strong><a href="http://en.wikipedia.org/wiki/Object-relational_mapping" target="_blank" rel="nofollow"><strong>ORM</strong></a><strong> Rails uses. This will be important later.</strong></p>
+<p>&nbsp;</p>
+<p>Active Record allows us to connect our Database to our Ruby Objects in some pretty powerful ways. I’m telling you this because in further code you will see me call methods on objects that are returning an array of information I’m using in conjunction with the Instagram API. Let’s go through one quick example:</p>
+<p>&nbsp;</p>
+<p>Let’s say I have two tables in my database, users and searches. One user has many searches so I make a user_id column in searches. Then I set up my Active Record Models in Rails. Next the awesome happens. Let’s watch.</p>
+<p>&nbsp;</p>
+<p>So let’s say I want to find the user with an id of one. Now in ruby, I just type:</p>
+<pre>bob = User.find(1)</pre>
+<p>(*I’m just saving it to a variable for another part of the example.)</p>
+<p>&nbsp;</p>
+<p>What Active Record <em>actually</em>  did was write this:</p>
+<pre>SELECT "users".* FROM "users" WHERE "users"."id" = $1 LIMIT 1 [["id", 1]]</pre>
+<p>&nbsp;</p>
+<p>It then creates an object in Ruby for me to play with containing everything about this user that was in the database. Pretty cool! Let’s also say that I wanted every search this user made.</p>
+<p>&nbsp;</p>
+<p>All I have to do now is this:</p>
+<pre>bob.searches</pre>
+<p>&nbsp;</p>
+<p>Which writes this:</p>
+<pre>SELECT “searches”.* FROM “searches” WHERE “searches”.”user_id” = $1 [[“user_id”, 1]]</pre>
+<p>&nbsp;</p>
+<p>This gives us every search in an array as nice pretty ruby objects!</p>
+</div>
+</section>
+<section>
+<div>
+<hr />
+</div>
+<div>
+<h2>The Process</h2>
+<p>Ok, it’s time to actually do this. Lets walk through grabbing a hashtag from a user on a website, dynamically writing an API call, parsing the data, and displaying it back to the user on the web.</p>
+<h3></h3>
+<h3>A logged in user types in #yolo to look at pictures via a website.</h3>
+<p>We get the user from the session they are in, using ActiveRecord we then add a new search to our user and our database to use for other stuff, if we desire to later (like seeing our most recent searches or checking out what other users search for, for example). Let’s pretend they fill out a box on a website to put in a hashtag. When they press enter, it will go through this process.</p>
+<p>&nbsp;</p>
+<p><strong>This is what the rails search controller may look like:</strong></p>
+<pre>def create
+ @user = User.find(session[:user_id])
+ @user.searches.new(params[:hashtag])
+
+ if @user.save
+  redirect_to user_path(@user)
+ else
+  render(:new)
+ end
+end</pre>
+<h3></h3>
+<h3>We dynamically write an API call request to Instagram.</h3>
+<p>We take that new search request from the user and feed the hashtag into a method I made to pull back the data. Here are two methods you can check out, one to get the full data about a hashtag and one to just return the total times a hashtag has been used. Check em out!</p>
+<p>&nbsp;</p>
+<p><strong>Here is a method I made to get info on pictures with a hashtag:</strong></p>
+<pre>def instagram_photos(hashtag)
+
+  the_data = HTTParty.get(
+   “https://api.instagram.com/v1/tags/#{hashtag}/media/
+   recent?client_id=#{INSTAGRAM_CLIENT_ID}”
+  )
+
+ return the_data[“data”]
+end</pre>
+<p>&nbsp;</p>
+<p><strong>Lastly, a method to get the total count of times a hashtag was used:</strong></p>
+<pre>def instagram_tag_stat(hashtag)
+
+ tag_stats = HTTParty.get(
+  “https://api.instagram.com/v1/tags/search?q=#
+  {hashtag}&amp;client_id=#{INSTAGRAM_CLIENT_ID}”
+ )
+
+ return tag_stats[“data”][0][“media_count”]
+
+end</pre>
+<h3></h3>
+<h3>Getting data back in a crazy structure.</h3>
+<p><em>Hashes within arrays within hashes…</em></p>
+<p>&nbsp;</p>
+<p>Let’s start by making an API call to Instagram for some info about the hashtag #yolo and save what we get back to a variable called our_data.</p>
+<pre>our_data = HTTParty.get(
+ “https://api.instagram.com/v1/tags/yolo/media/recent?
+ client_id=#{INSTAGRAM_CLIENT_ID}”
+)</pre>
+<p>&nbsp;</p>
+<p>The output that we get back is a hash of key, value pairs containing arrays and hashes that contain arrays and hashes. It’s like data inception, very useful data inception actually. Lets break down a bit so we can use it. I’ll quickly go over the skeleton of the data structure you you can explore the juicy information inside.</p>
+<p>&nbsp;</p>
+<p><strong>Accessing this:</strong></p>
+<pre>our_data[“pagination”]</pre>
+<p>&nbsp;</p>
+<p><strong>Gives us:</strong></p>
+<pre>{
+ “next_max_tag_id”:”1393732758253",
+ “deprecation_warning”:”next_max_id and min_id are deprecated
+  for this endpoint; use min_tag_id and max_tag_id instead”,
+ “next_max_id”:”1393732758253",
+ “next_min_id”:”1393732780802",
+ “min_tag_id”:”1393732780802",
+ “next_url”:”https://api.instagram.com/v1/tags/yolo/media/recent
+  ?client_id=***INSTAGRAM_CLIENT_ID***&amp;max_tag_id=1393732758253"
+ }</pre>
+<p>&nbsp;</p>
+<p>Accessing this key in our hash will return a hash that allows to you make another API call to get more #yolo photos. Because of the amount of data available Instagram limits how much data you can get per API call to information on the last twenty photos. (#yolo has been been used on 18,290,259 freaking photos at the time of this writing, for example.) So, you will get the key if your #hashtag has been used on more than 20 photos.</p>
+<p>&nbsp;</p>
+<p><strong>Accessing this:</strong></p>
+<pre>our_data[“meta”]</pre>
+<p>&nbsp;</p>
+<p><strong>Gives us:</strong></p>
+<pre>{
+ “code”:200
+ }</pre>
+<p>&nbsp;</p>
+<p>The “meta” key is usually short and sweet. It returns meta information (via another hash) on the api call itself. If everything works well you will just get a code number (200 specifically) and if you get any errors they will be inside of meta and help you troubleshoot what is happening.</p>
+<p>&nbsp;</p>
+<p><strong>Accessing this:</strong></p>
+<pre>our_data[“data”]</pre>
+<p>&nbsp;</p>
+<p><strong>Gives us up to twenty of these big hashes containing other hashes and arrays:</strong></p>
+<pre>[
+ {
+  “attribution”:null,
+  “tags”:[“yolo”],
+  “location”:null,
+  “comments”:{ “count”:0, “data”:[] },
+  “filter”:”Hudson”,
+  “created_time”:”1393703980",
+  “link”:”http://instagram.com/p/lAznqkAUz0/”,
+  “likes”:{ “count”:0, “data”:[] },
+  “images”:{
+  “low_resolution”:{
+    “url”:”http://distilleryimage0.s3.amazonaws.com/
+    ca4f97e2a17b11e3b8590a1f8b30899c_6.jpg”,
+    “width”:306,
+    “height”:306
+   },
+   “thumbnail”:{
+    “url”:”http://distilleryimage0.s3.amazonaws.com/
+    ca4f97e2a17b11e3b8590a1f8b30899c_5.jpg”,
+    “width”:150,
+    “height”:150
+   },
+   “standard_resolution”:{
+    “url”:”http://distilleryimage0.s3.amazonaws.com/
+    ca4f97e2a17b11e3b8590a1f8b30899c_8.jpg”,
+    “width”:640,
+    “height”:640
+   }
+  },
+ “users_in_photo”:[],
+ “caption”:{
+  “created_time”:”1393703980",
+  “text”:”hverdagsbilde 1/5. utfordret av @marthefjeld93 ,sender
+   videre til @tpt88\n#yolo”,
+
+“from”:{
+   “username”:”iselinkristensen”,
+   “profile_picture”:”http://images.ak.instagram.com/profiles/
+    profile_214645082_75sq_1386628652.jpg”,
+   “id”:”214645082",
+   “full_name”:”iselin kristensen”
+  },
+  “id”:”666759771872906934"
+ },
+ “type”:”image”,
+ “id”:”666759770983714036_214645082",
+ “user”:{
+  “username”:”iselinkristensen”,
+  “website”:””,
+  “profile_picture”:”http://images.ak.instagram.com/profiles
+  /profile_214645082_75sq_1386628652.jpg”,
+  “full_name”:”iselin kristensen”,
+  “bio”:””,
+  “id”:”214645082"
+  }
+ }
+]</pre>
+<p>&nbsp;</p>
+<p>This is where the the actual data we want is. Accessing this key will give us an array of hashes, each hash containing photo information about a specific photo that was tagged with #yolo. From the amount of likes and comments to the filter used, this hash contains nearly anything you could want to know about a specific photo. For example, lets access the first (and only in this case) image’s “standard resolution” photo url so we can use it in our app.</p>
+<p>&nbsp;</p>
+<p>We would just do something like this:</p>
+<p>&nbsp;</p>
+<pre>our_data[“data”][0][“images”][“standard_resolution”][“url”]</pre>
+<p>&nbsp;</p>
+<p>Which returns the following link we want.</p>
+<p>&nbsp;</p>
+<pre>http://distilleryimage0.s3.amazonaws.com/ca4f97e2a17b11e3b8590a1f8b30899c_8.jpg</pre>
+<p>&nbsp;</p>
+<p>So, to recap, we accessed the “data” key in the hash which gave us an array of hashes, each hash containing its own photo and all the information we could want about it. We then found the “images” key in the first photo in the array (we got to the first photo with index [0]). Finally, we found the “standard resolution” of the photo and found it’s “url” which gave us a the link we needed.</p>
+<p>&nbsp;</p>
+<p><strong><em>Note:</em></strong><em> This is a condensed version of something you may get back for the hashtag #yolo. I’m only showing you info for one picture!</em></p>
+<h3></h3>
+<h3><strong>Then it gets restructured and prepared to be viewed.</strong></h3>
+<p>&nbsp;</p>
+<p>Here is a peek into what the search controller’s show page could look like. This helps us get everything ready to view and show our user.</p>
+<p>&nbsp;</p>
+<pre>def show
+ @search = Search.find(params[:id])
+ @tag_count = 
+  instagram_tag_stat(@search.hashtag).to_s.
+  reverse.gsub(/…(?=.)/,’<pre wp-pre-tag-18></pre>amp;,’).reverse
+ @pics_info = instagram_photos(@search.hashtag)
+end</pre>
+<h3></h3>
+<h3><strong>We feed the data back to the user so he can see as much #yolo as he can handle.</strong></h3>
+<p>&nbsp;</p>
+<p>Here we are just iterating through any picture, pulling out the parts we want to write in html, and then serving it back up as a webpage.</p>
+<p>&nbsp;</p>
+<pre>&lt;div&gt;
+ &lt;ul&gt;
+ &lt;% @pics_info.each do |pic| %&gt;
+  &lt;li&gt; 
+   &lt;a href=”&lt;%= pic[“link”]%&gt;” target=”_blank”&gt;
+    &lt;img src=”&lt;%= pic[“images”][“standard_resolution”]
+    [“url”] %&gt;” width=”300px”/&gt;
+   &lt;/a&gt;
+
+   &lt;a href=”http://instagram.com/&lt;%= pic[“user”]
+    [“username”]%&gt;”<span style="font-size: 12px;">target=”_blank”&gt;</span><span style="font-size: 12px;">&lt;p&gt;@
+    &lt;%= pic[“user”][“username”]%&gt;&lt;/p&gt;
+   &lt;/a&gt;
+</span><span style="font-size: 12px;">   
+   &lt;p id=”likes”&gt;&lt;%= pic[“likes”][“count”]%&gt; Likes&lt;/p&gt;
+</span><span style="font-size: 12px;">   
+   &lt;p&gt;
+</span><span style="font-size: 12px;">    &lt;%= truncate(pic[“caption”][“text”], :length =&gt; 80) unless 
+</span><span style="font-size: 12px;">    pic[“caption”].nil? %&gt;</span><span style="font-size: 12px;">   
+   &lt;/p&gt;
+</span>
+  &lt;/li&gt;
+ &lt;% end %&gt;
+ &lt;/ul&gt;
+&lt;/div&gt;</pre>
+<h2></h2>
+<h2><strong>Code Away, My Friend.</strong></h2>
+<p>Phew, now that you’ve made it this far it’s time for you to start to play around with your own hashtags and ways to interact with Instagram. Good luck and enjoy!</p>
+<p>&nbsp;</p>
+</div>
+</section>
+</section>
