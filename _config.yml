@@ -10,3 +10,8 @@ github_username:  kevinmcalear
 
 # Build settings
 markdown: kramdown
+
+# setting up a projects collection
+collections:
+  projects:
+    output: true
