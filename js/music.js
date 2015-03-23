@@ -75,6 +75,10 @@ function getSongs() {
                     div.setAttribute('data-sr',"move 16px scale up 20%, over 2s");
                     // div.setAttribute('class','col-3');
                     div.innerHTML = a.outerHTML;
+                    // var p = document.createElement('p');
+                    a.innerHTML = songList[index]["title"]+' - '+songList[index]["artist"];
+                    a.setAttribute('class',"title");
+                    div.appendChild(a);
                     // append the div to the list
                     musicList.appendChild(div);
                   }
