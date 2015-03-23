@@ -150,6 +150,21 @@ canvas {
     }
 }
 
+/**
+ * Grid Layout
+ */
+
+.col-3 {
+  display: inline-block;
+  width: 33.3333%;
+}
+
+@include media-query($on-palm) {
+    .col-3 {
+        width: 100%;
+        display: block;
+    }
+}
 
 
 
