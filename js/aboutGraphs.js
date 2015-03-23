@@ -3,9 +3,9 @@ var languages = {
     datasets: [
         {
             label: "My Second dataset",
-            fillColor: "rgba(151,187,205,0.2)",
-            strokeColor: "rgba(151,187,205,1)",
-            pointColor: "rgba(151,187,205,1)",
+            fillColor: "rgba(15, 35, 66, 0.2)",
+            strokeColor: "rgba(15, 35, 66, 1)",
+            pointColor: "rgba(15, 35, 66, 1)",
             pointStrokeColor: "#fff",
             pointHighlightFill: "#fff",
             pointHighlightStroke: "rgba(151,187,205,1)",
@@ -15,33 +15,33 @@ var languages = {
 };
 
 var design = {
-    labels: ["Photoshop", "UX", "UI Design", "Designing", "Coding", "Cycling", "Running"],
+    labels: ["Photoshop", "Illustrator", "UX", "UI Design"],
     datasets: [
         {
             label: "My Second dataset",
-            fillColor: "rgba(151,187,205,0.2)",
-            strokeColor: "rgba(151,187,205,1)",
-            pointColor: "rgba(151,187,205,1)",
+            fillColor: "rgba(66, 15, 46, 0.2)",
+            strokeColor: "rgba(66, 15, 46, 1)",
+            pointColor: "rgba(66, 15, 46, 1)",
             pointStrokeColor: "#fff",
             pointHighlightFill: "#fff",
             pointHighlightStroke: "rgba(151,187,205,1)",
-            data: [28, 48, 40, 19, 96, 27, 100]
+            data: [80, 50, 75, 70]
         }
     ]
 };
 
 var data = {
-    labels: ["iPython Notebook", "Scikit Learn", "Pandas", "Numpy", "SciPy", "Cycling", "Running"],
+    labels: ["iPython Notebook", "Scikit Learn", "Pandas", "Data Analysis", "Statistics"],
     datasets: [
         {
             label: "My Second dataset",
-            fillColor: "rgba(151,187,205,0.2)",
-            strokeColor: "rgba(151,187,205,1)",
-            pointColor: "rgba(151,187,205,1)",
+            fillColor: "rgba(40, 15, 66, 0.2)",
+            strokeColor: "rgba(40, 15, 66, 1)",
+            pointColor: "rgba(40, 15, 66, 1)",
             pointStrokeColor: "#fff",
             pointHighlightFill: "#fff",
             pointHighlightStroke: "rgba(151,187,205,1)",
-            data: [28, 48, 40, 19, 96, 27, 100]
+            data: [85, 90, 80, 85, 70, 75]
         }
     ]
 };
