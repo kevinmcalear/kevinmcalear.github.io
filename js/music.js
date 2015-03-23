@@ -7,6 +7,34 @@ function img_create(src, alt, title) {
     return img;
 }
 
+// used for creating and adding in the music player
+var createPlayer = function() {
+  // add the player
+  (function() {
+      var script = document.createElement("script");
+
+      script.type = "text/javascript";
+      script.async = true;
+      script.src = "//sd.toneden.io/production/toneden.loader.js"
+
+      var entry = document.getElementsByTagName("script")[0];
+      entry.parentNode.insertBefore(script, entry);
+  }());
+
+  ToneDenReady = window.ToneDenReady || [];
+  ToneDenReady.push(function() {
+      // Modify the dom and urls parameters to position
+      // your player and select tracks/sets/artists to play.
+      ToneDen.player.create({
+          dom: "#player",
+          urls: [
+              "https://soundcloud.com/kevin-mcalear"
+          ]
+      });
+  });
+}
+
+
 function getSongs() {
     var xmlhttp;
 
@@ -42,10 +70,17 @@ function getSongs() {
                     a.setAttribute('target',"_blank");
                     // add the song's image inside the link
                     a.innerHTML = image.outerHTML;
-                    // append the anchor to the list
-                    musicList.appendChild(a);
+                    // make a div and append the anchor to it
+                    var div = document.createElement('div');
+                    div.setAttribute('data-sr',"move 16px scale up 20%, over 2s");
+                    // div.setAttribute('class','col-3');
+                    div.innerHTML = a.outerHTML;
+                    // append the div to the list
+                    musicList.appendChild(div);
                   }
-               }
+              }
+              // Scroll Reveal stuff for songs
+              window.sr = new scrollReveal();
            }
            else if(xmlhttp.status == 400) {
               alert('There was an error 400');
@@ -64,6 +99,12 @@ function getSongs() {
 // Get us some songs!
 (function(){
   if (document.getElementById("music")){
+    // Add in the player
+    createPlayer();
+    // get the songs I like and add them in
     getSongs();
+
   }
 })();
+
+
