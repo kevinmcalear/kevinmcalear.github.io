@@ -95,5 +95,75 @@ Chart.defaults.global.pointLabelFontSize = 20;
 
     });
 
+    // Map stuff
+    // var map = new Datamap({element: document.getElementById('map')});
+    var map = new Datamap({
+      element: document.getElementById("map"),
+       // scope: 'usa',
+       // responsive: true,
+       projection: 'orthographic',
+       projectionConfig: {
+          rotation: [77,-30]
+        },
+        geographyConfig: {
+          popupOnHover: false, //disable the popup while hovering
+          highlightOnHover: false,
+      },
+      fills: {
+        defaultFill: "rgba(126, 128, 126, 0.2)",
+        win: 'rgba(15, 27, 250, 0.4)'
+      },
+      data: {
+        'DEU': { fillKey: 'win' },
+        'USA': { fillKey: 'win' },
+        'NC': { fillKey: 'win' },
+        'CA': { fillKey: 'win' },
+        'NY': { fillKey: 'win' },
+        'CO': { fillKey: 'win' }
+      }
+    });
+
+    map.arc([
+      {
+          origin: {
+              latitude: 41.6656,
+              longitude: -83.5753
+          },
+          destination: {
+              latitude: 48.7833,
+              longitude: 9.1833
+          }
+      },
+      {
+          origin: {
+              latitude: 48.7833,
+              longitude: 9.1833
+          },
+          destination: {
+              latitude: 36.3167,
+              longitude: -119.3000
+          },
+          options: {
+            strokeWidth: 1,
+            strokeColor: 'rgba(100, 10, 200, 0.4)',
+    greatArc: true
+          }
+      },
+      {
+          origin: {
+              latitude: 36.3167,
+              longitude: -119.3000
+          },
+          destination: {
+              latitude: 40.6928,
+              longitude: -73.9903
+          }
+      }
+    ],  {strokeWidth: 1, arcSharpness: 1.4});
+
+    window.addEventListener('resize', function() {
+        map.resize();
+    });
   }
 })();
+

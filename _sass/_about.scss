@@ -13,6 +13,13 @@
         }
     }
   }
+  #map {
+    margin: 0 auto;
+    margin-top: -50px;
+    position: relative;
+    width: 600px;
+    height: 600px;
+  }
   .col-3 {
     margin: 3%;
     width: 27%;
@@ -23,6 +30,13 @@
           margin: 7.5%;
           width: 85%;
           display: block;
+      }
+      #map {
+        width: 100% !important;
+        padding-bottom: 0px !important;
+         svg {
+          width: 100% !important;
+        }
       }
   }
 }
