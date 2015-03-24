@@ -3,6 +3,16 @@
 }
 
 .about {
+
+  .experience {
+    &> div{
+      vertical-align: top;
+        img {
+          border-radius: 5px;
+          border: 1px solid black;
+        }
+    }
+  }
   .col-3 {
     margin: 3%;
     width: 27%;
