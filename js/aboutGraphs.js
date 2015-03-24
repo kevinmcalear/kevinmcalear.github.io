@@ -94,9 +94,8 @@ Chart.defaults.global.pointLabelFontSize = 20;
       tooltipTemplate: "<%=label%>: <%= value %>%",
 
     });
-
     // Map stuff
-    // var map = new Datamap({element: document.getElementById('map')});
+    //TODO: CREATE A CUSTOM MAP WITH JUST GERMANY AND USA: https://github.com/markmarkoh/datamaps/blob/master/README.md#using-custom-maps
     var map = new Datamap({
       element: document.getElementById("map"),
        // scope: 'usa',
@@ -115,11 +114,13 @@ Chart.defaults.global.pointLabelFontSize = 20;
       },
       data: {
         'DEU': { fillKey: 'win' },
-        'USA': { fillKey: 'win' },
-        'NC': { fillKey: 'win' },
-        'CA': { fillKey: 'win' },
-        'NY': { fillKey: 'win' },
-        'CO': { fillKey: 'win' }
+        'USA': { fillKey: 'win' }
+      },
+      arcConfig: {
+        strokeColor: '#DD1C77',
+        strokeWidth: 1,
+        arcSharpness: 1,
+        animationSpeed: 2000
       }
     });
 
@@ -145,7 +146,7 @@ Chart.defaults.global.pointLabelFontSize = 20;
           },
           options: {
             strokeWidth: 1,
-            strokeColor: 'rgba(100, 10, 200, 0.4)',
+            // strokeColor: 'rgba(100, 10, 200, 0.4)',
     greatArc: true
           }
       },
@@ -160,6 +161,7 @@ Chart.defaults.global.pointLabelFontSize = 20;
           }
       }
     ],  {strokeWidth: 1, arcSharpness: 1.4});
+
 
     window.addEventListener('resize', function() {
         map.resize();
