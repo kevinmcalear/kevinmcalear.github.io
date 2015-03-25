@@ -110,7 +110,8 @@ Chart.defaults.global.pointLabelFontSize = 20;
       },
       fills: {
         defaultFill: "rgba(126, 128, 126, 0.2)",
-        win: 'rgba(15, 27, 250, 0.4)'
+        win: 'rgba(15, 27, 250, 0.25)',
+        travelColor: '#DD1C77'
       },
       data: {
         'DEU': { fillKey: 'win' },
@@ -121,6 +122,20 @@ Chart.defaults.global.pointLabelFontSize = 20;
         strokeWidth: 1,
         arcSharpness: 1,
         animationSpeed: 2000
+      },
+      bubblesConfig: {
+        borderWidth: 8,
+        borderColor: 'rgba(126, 128, 126, 0.2)',
+        popupOnHover: true,
+        popupTemplate: function(geography, data) {
+          return '&lt;div class="hoverinfo"&gt;&lt;strong&gt;' + data.name + '&lt;/strong&gt;&lt;/div&gt;';
+        },
+        fillOpacity: 1,
+        highlightOnHover: true,
+        highlightFillColor: '#DD1C77',
+        highlightBorderColor: 'rgba(126, 128, 126, 0.8)',
+        highlightBorderWidth: 8,
+        highlightFillOpacity: 0.85
       }
     });
 
@@ -162,6 +177,16 @@ Chart.defaults.global.pointLabelFontSize = 20;
       }
     ],  {strokeWidth: 1, arcSharpness: 1.4});
 
+    map.bubbles([
+     {name: 'Ohio', latitude: 41.6656, longitude: -83.5753, radius: 2, fillKey: 'travelColor'},
+     {name: 'Germany', latitude: 48.7833, longitude: 9.1833, radius: 2, fillKey: 'travelColor'},
+     {name: 'California', latitude: 36.3167, longitude: -119.3000, radius: 2, fillKey: 'travelColor'},
+     {name: 'New York City', latitude: 40.6928, longitude: -73.9903, radius: 2, fillKey: 'travelColor'},
+      ], {
+       popupTemplate: function(geo, data) {
+         return "<div class='hoverinfo tooltip'>" + data.name + "";
+       }
+    });
 
     window.addEventListener('resize', function() {
         map.resize();
