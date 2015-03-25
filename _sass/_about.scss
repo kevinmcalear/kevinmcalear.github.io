@@ -25,8 +25,12 @@
     width: 27%;
   }
 
-  .tooltip {
-    background: 'rgba(126, 128, 126, 0.2)';
+  .datamaps-hoverover {
+    .hoverinfo.tooltip {
+      border-radius: 5px;
+      background: rgba(0, 0, 0, 0.5);
+      color: white;
+    }
   }
 
   @include media-query($on-palm) {
