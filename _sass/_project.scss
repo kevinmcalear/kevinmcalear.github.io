@@ -1,0 +1,32 @@
+.project-list {
+  margin-top: 30px;
+  text-align: center;
+  li {
+    display: inline-block;
+    position: relative;
+    width: 16%;
+    margin: 1%;
+    img {
+      width: 200px;
+      height: 200px;
+      border-radius:10px;
+      border:1px solid black;
+    }
+    h2 {
+      position: absolute;
+      top: 15%;
+      left: 6%;
+      right: 0;
+      bottom: 0;
+      width: 88%;
+      height: 90%;
+      // vertical-align: bottom;
+      visibility: hidden;
+    }
+    &:hover {
+        h2 {
+          visibility: visible;
+        }
+      }
+  }
+}

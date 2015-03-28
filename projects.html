@@ -4,18 +4,18 @@ title: Projects
 permalink: /projects/
 ---
 
-<div class="home">
-
-  <h1 class="page-heading">projects</h1>
-
-  <ul class="post-list">
+<div class="projects">
+  <ul class="project-list">
     {% for project in site.projects %}
       <li>
-        <span class="project-meta">{{ project.date | date: "%b %-d, %Y" }}</span>
+        <img>
 
         <h2>
           <a class="project-link" href="{{ project.url | prepend: site.baseurl }}">{{ project.title }}</a>
         </h2>
+        <span class="project-meta">{{ project.date | date: "%b %-d, %Y" }}</span>
+
+
       </li>
     {% endfor %}
   </ul>
