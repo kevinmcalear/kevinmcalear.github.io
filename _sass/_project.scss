@@ -7,9 +7,18 @@
     position: relative;
     width: 16.5%;
     margin: 1%;
+    -webkit-transition: 1s all ease-in;
+    -moz-transition: 1s all ease-in;
+    -o-transition: 1s all ease-in;
+    transition: 1s all ease-in;
+    a {
+      color: white;
+    }
     img {
       border-radius:10px;
       border:1px solid rgba(0, 0, 0, 0.5);
+      -webkit-transition: .5s -webkit-filter ease-in-out;
+      transition: .5s -webkit-filter ease-in-out;
     }
     h2 {
       position: absolute;
@@ -25,6 +34,16 @@
     &:hover {
         h2 {
           visibility: visible;
+          a {
+            color: white;
+          }
+        }
+        img {
+          -webkit-filter: blur(5px) brightness(0.6);
+          -moz-filter: blur(5px) brightness(0.6);
+          -o-filter: blur(5px) brightness(0.6);
+          -ms-filter: blur(5px) brightness(0.6);
+          filter: blur(5px) brightness(0.6);
         }
       }
   }
