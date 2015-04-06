@@ -209,7 +209,7 @@ Chart.defaults.global.pointLabelFontSize = 20;
             }
 
             addArcs(1);
-
+            // map.graticule();
             map.bubbles([
              {name: 'Ohio', latitude: 41.6656, longitude: -83.5753, radius: 2, fillKey: 'travelColor'},
              {name: 'Germany', latitude: 48.7833, longitude: 9.1833, radius: 2, fillKey: 'travelColor'},
