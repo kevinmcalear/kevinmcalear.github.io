@@ -34,17 +34,17 @@
   }
 
   @include media-query($on-palm) {
-      .col-3 {
-          margin: 7.5%;
-          width: 85%;
-          display: block;
-      }
-      #map {
+    .col-3 {
+        margin: 7.5%;
+        width: 85%;
+        display: block;
+    }
+    #map {
+      width: 100% !important;
+      padding-bottom: 0px !important;
+       svg {
         width: 100% !important;
-        padding-bottom: 0px !important;
-         svg {
-          width: 100% !important;
-        }
       }
+    }
   }
 }

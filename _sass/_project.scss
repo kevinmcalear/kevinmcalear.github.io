@@ -15,7 +15,7 @@
       color: white;
     }
     img {
-      border-radius:10px;
+      border-radius:5px;
       border:1px solid rgba(0, 0, 0, 0.5);
       -webkit-transition: .5s -webkit-filter ease-in-out;
       transition: .5s -webkit-filter ease-in-out;
@@ -32,19 +32,45 @@
       visibility: hidden;
     }
     &:hover {
-        h2 {
-          visibility: visible;
-          a {
-            color: white;
-          }
-        }
-        img {
-          -webkit-filter: blur(5px) brightness(0.6);
-          -moz-filter: blur(5px) brightness(0.6);
-          -o-filter: blur(5px) brightness(0.6);
-          -ms-filter: blur(5px) brightness(0.6);
-          filter: blur(5px) brightness(0.6);
+      h2 {
+        visibility: visible;
+        a {
+          color: white;
         }
       }
+      img {
+        -webkit-filter: blur(5px) brightness(0.6);
+        -moz-filter: blur(5px) brightness(0.6);
+        -o-filter: blur(5px) brightness(0.6);
+        -ms-filter: blur(5px) brightness(0.6);
+        filter: blur(5px) brightness(0.6);
+      }
+    }
+  }
+  @include media-query($on-palm) {
+    li {
+      width: 96%;
+      margin: 2%;
+      h2 {
+        width: 60%;
+        left: 20%;
+      }
+    }
+  }
+  @include media-query($on-laptop) {
+    li {
+      width: 26%;
+      margin: 2%;
+      h2 {
+        top: 10px;
+      }
+    }
+  }
+  @include media-query(1000px) {
+    li {
+      h2 {
+        top: 5px;
+      }
+    }
   }
 }
