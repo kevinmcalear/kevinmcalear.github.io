@@ -47,13 +47,10 @@
       }
     }
   }
-  @include media-query($on-palm) {
+  @include media-query(1000px) {
     li {
-      width: 96%;
-      margin: 2%;
       h2 {
-        width: 60%;
-        left: 20%;
+        top: 5px;
       }
     }
   }
@@ -66,10 +63,13 @@
       }
     }
   }
-  @include media-query(1000px) {
+  @include media-query($on-palm) {
     li {
+      width: 96%;
+      margin: 2%;
       h2 {
-        top: 5px;
+        width: 60%;
+        left: 20%;
       }
     }
   }
