@@ -94,103 +94,128 @@ Chart.defaults.global.pointLabelFontSize = 20;
       tooltipTemplate: "<%=label%>: <%= value %>%",
 
     });
-    // Map stuff
-    //TODO: CREATE A CUSTOM MAP WITH JUST GERMANY AND USA: https://github.com/markmarkoh/datamaps/blob/master/README.md#using-custom-maps
-    var map = new Datamap({
-      element: document.getElementById("map"),
-       // scope: 'usa',
-       // responsive: true,
-       projection: 'orthographic',
-       projectionConfig: {
-          rotation: [77,-30]
-        },
-        geographyConfig: {
-          popupOnHover: false, //disable the popup while hovering
-          highlightOnHover: false,
-      },
-      fills: {
-        defaultFill: "rgba(126, 128, 126, 0.2)",
-        win: 'rgba(15, 27, 250, 0.25)',
-        travelColor: '#DD1C77'
-      },
-      data: {
-        'DEU': { fillKey: 'win' },
-        'USA': { fillKey: 'win' }
-      },
-      arcConfig: {
-        strokeColor: '#DD1C77',
-        strokeWidth: 1,
-        arcSharpness: 1,
-        animationSpeed: 2000
-      },
-      bubblesConfig: {
-        borderWidth: 8,
-        borderColor: 'rgba(126, 128, 126, 0.2)',
-        popupOnHover: true,
-        popupTemplate: function(geography, data) {
-          return '&lt;div class="hoverinfo"&gt;&lt;strong&gt;' + data.name + '&lt;/strong&gt;&lt;/div&gt;';
-        },
-        fillOpacity: 1,
-        highlightOnHover: true,
-        highlightFillColor: '#DD1C77',
-        highlightBorderColor: 'rgba(126, 128, 126, 0.8)',
-        highlightBorderWidth: 8,
-        highlightFillOpacity: 0.85
-      }
-    });
 
-    map.arc([
-      {
-          origin: {
-              latitude: 41.6656,
-              longitude: -83.5753
-          },
-          destination: {
-              latitude: 48.7833,
-              longitude: 9.1833
-          }
-      },
-      {
-          origin: {
-              latitude: 48.7833,
-              longitude: 9.1833
-          },
-          destination: {
-              latitude: 36.3167,
-              longitude: -119.3000
-          },
-          options: {
-            strokeWidth: 1,
-            // strokeColor: 'rgba(100, 10, 200, 0.4)',
-    greatArc: true
-          }
-      },
-      {
-          origin: {
-              latitude: 36.3167,
-              longitude: -119.3000
-          },
-          destination: {
-              latitude: 40.6928,
-              longitude: -73.9903
-          }
-      }
-    ],  {strokeWidth: 1, arcSharpness: 1.4});
+    var fired = false;
+    var mapEl = document.getElementById("map");
+    var aboutEl = document.getElementsByClassName('about')
+    if ( aboutEl.length == 1 ) {
+      document.addEventListener("scroll",function(){
+        if ( !checkvisible( mapEl ) && !fired ) {
+          fired = true;
+          setTimeout(function(){
+            fadeIn(mapEl)
+            // Map stuff
+            //TODO: CREATE A CUSTOM MAP WITH JUST GERMANY AND USA: https://github.com/markmarkoh/datamaps/blob/master/README.md#using-custom-maps
+            var map = new Datamap({
+              element: document.getElementById("map"),
+               // scope: 'usa',
+               // responsive: true,
+               projection: 'orthographic',
+               projectionConfig: {
+                  rotation: [77,-30]
+                },
+                geographyConfig: {
+                  popupOnHover: false, //disable the popup while hovering
+                  highlightOnHover: false,
+              },
+              fills: {
+                defaultFill: "rgba(126, 128, 126, 0.2)",
+                win: 'rgba(15, 27, 250, 0.25)',
+                travelColor: '#DD1C77'
+              },
+              data: {
+                'DEU': { fillKey: 'win' },
+                'USA': { fillKey: 'win' }
+              },
+              arcConfig: {
+                strokeColor: '#DD1C77',
+                strokeWidth: 1,
+                arcSharpness: 1,
+                animationSpeed: 2000
+              },
+              bubblesConfig: {
+                borderWidth: 8,
+                borderColor: 'rgba(126, 128, 126, 0.2)',
+                popupOnHover: true,
+                popupTemplate: function(geography, data) {
+                  return '&lt;div class="hoverinfo"&gt;&lt;strong&gt;' + data.name + '&lt;/strong&gt;&lt;/div&gt;';
+                },
+                fillOpacity: 1,
+                highlightOnHover: true,
+                highlightFillColor: '#DD1C77',
+                highlightBorderColor: 'rgba(126, 128, 126, 0.8)',
+                highlightBorderWidth: 8,
+                highlightFillOpacity: 0.85
+              }
+            });
 
-    map.bubbles([
-     {name: 'Ohio', latitude: 41.6656, longitude: -83.5753, radius: 2, fillKey: 'travelColor'},
-     {name: 'Germany', latitude: 48.7833, longitude: 9.1833, radius: 2, fillKey: 'travelColor'},
-     {name: 'California', latitude: 36.3167, longitude: -119.3000, radius: 2, fillKey: 'travelColor'},
-     {name: 'New York City', latitude: 40.6928, longitude: -73.9903, radius: 2, fillKey: 'travelColor'},
-      ], {
-       popupTemplate: function(geo, data) {
-         return "<div class='hoverinfo tooltip'>" + data.name + "";
-       }
-    });
+            map.arc([
+              {
+                  origin: {
+                      latitude: 41.6656,
+                      longitude: -83.5753
+                  },
+                  destination: {
+                      latitude: 48.7833,
+                      longitude: 9.1833
+                  }
+              },
+              {
+                  origin: {
+                      latitude: 48.7833,
+                      longitude: 9.1833
+                  },
+                  destination: {
+                      latitude: 36.3167,
+                      longitude: -119.3000
+                  },
+                  options: {
+                    strokeWidth: 1,
+                    // strokeColor: 'rgba(100, 10, 200, 0.4)',
+                    greatArc: true
+                  }
+              },
+              {
+                  origin: {
+                      latitude: 36.3167,
+                      longitude: -119.3000
+                  },
+                  destination: {
+                      latitude: 40.6928,
+                      longitude: -73.9903
+                  }
+              },
+              // {
+              //     origin: {
+              //         latitude: 40.6928,
+              //         longitude: -73.9903
+              //     },
+              //     destination: {
+              //         latitude: 47.6097,
+              //         longitude: -122.3331
+              //     }
+              // }
+            ],  {strokeWidth: 1, arcSharpness: 1.4});
 
-    window.addEventListener('resize', function() {
-        map.resize();
-    });
+            map.bubbles([
+             {name: 'Ohio', latitude: 41.6656, longitude: -83.5753, radius: 2, fillKey: 'travelColor'},
+             {name: 'Germany', latitude: 48.7833, longitude: 9.1833, radius: 2, fillKey: 'travelColor'},
+             {name: 'California', latitude: 36.3167, longitude: -119.3000, radius: 2, fillKey: 'travelColor'},
+             {name: 'New York City', latitude: 40.6928, longitude: -73.9903, radius: 2, fillKey: 'travelColor'},
+             // {name: 'Seattle', latitude: 47.6097, longitude: -122.3331, radius: 2, fillKey: 'travelColor'},
+              ], {
+               popupTemplate: function(geo, data) {
+                 return "<div class='hoverinfo tooltip'>" + data.name + "";
+               }
+            });
+
+            window.addEventListener('resize', function() {
+                map.resize();
+            });
+          },400);
+        }
+      })
+    }
   }
 })();
 
