@@ -105,7 +105,8 @@ Chart.defaults.global.pointLabelFontSize = 20;
           setTimeout(function(){
             fadeIn(mapEl)
             // Map stuff
-            //TODO: CREATE A CUSTOM MAP WITH JUST GERMANY AND USA: https://github.com/markmarkoh/datamaps/blob/master/README.md#using-custom-maps
+            // TODO: CREATE A CUSTOM MAP WITH JUST GERMANY AND USA: https://github.com/markmarkoh/datamaps/blob/master/README.md#using-custom-maps
+            // TODO: Try to get arcs to launch sequentially: http://datamaps.github.io/old.html
             var map = new Datamap({
               element: document.getElementById("map"),
                // scope: 'usa',
@@ -149,7 +150,7 @@ Chart.defaults.global.pointLabelFontSize = 20;
               }
             });
 
-            map.arc([
+            var myTravels = [
               {
                   origin: {
                       latitude: 41.6656,
@@ -169,11 +170,11 @@ Chart.defaults.global.pointLabelFontSize = 20;
                       latitude: 36.3167,
                       longitude: -119.3000
                   },
-                  options: {
-                    strokeWidth: 1,
-                    // strokeColor: 'rgba(100, 10, 200, 0.4)',
-                    greatArc: true
-                  }
+                  // options: {
+                  //   strokeWidth: 1,
+                  //   // strokeColor: 'rgba(100, 10, 200, 0.4)',
+                  //   greatArc: true
+                  // }
               },
               {
                   origin: {
@@ -195,7 +196,19 @@ Chart.defaults.global.pointLabelFontSize = 20;
               //         longitude: -122.3331
               //     }
               // }
-            ],  {strokeWidth: 1, arcSharpness: 2.1});
+            ];
+
+            // Add arcs in order
+            function addArcs(index) {
+                map.arc( myTravels.slice(0, index) , {strokeWidth: 1, arcSharpness: 2.1});
+                if ( index < myTravels.length ) {
+                    window.setTimeout(function() {
+                        addArcs(++index)
+                    }, 1900);
+                }
+            }
+
+            addArcs(1);
 
             map.bubbles([
              {name: 'Ohio', latitude: 41.6656, longitude: -83.5753, radius: 2, fillKey: 'travelColor'},
