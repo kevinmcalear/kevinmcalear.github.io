@@ -3,8 +3,16 @@ layout: default
 title: Projects
 permalink: /projects/
 ---
-
+<script>
+  function openDialog() {
+    Avgrund.show( "#default-popup" );
+  }
+  function closeDialog() {
+    Avgrund.hide();
+  }
+</script>
 <div id="projects">
+<button onclick="javascript:openDialog();">Open Avgrund</button>
   <ul class="project-list">
     {% for project in site.projects reversed %}
       <li class="project {{project.tags}}" data-sr="move 16px scale up 20%, over 2s">
@@ -19,3 +27,13 @@ permalink: /projects/
     {% endfor %}
   </ul>
 </div>
+<aside id="default-popup" class="avgrund-popup">
+  <h2>That's all, folks</h2>
+  <p>
+    You can hit ESC or click outside to close the modal. Give it a go to see the reverse transition.
+  </p>
+  <p>
+    If you like this you would probably enjoy <a href="http://lab.hakim.se/meny">Meny</a>, <a href="http://lab.hakim.se/reveal-js">reveal.js</a> and <a href="http://lab.hakim.se/scroll-effects">stroll.js</a>.
+  </p>
+  <button onclick="javascript:closeDialog();">Close</button>
+</aside>
