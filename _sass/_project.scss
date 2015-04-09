@@ -15,8 +15,7 @@
       color: white;
     }
     img {
-      border-radius:5px;
-      border:1px solid rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(0, 0, 0, 0.05);
       -webkit-transition: .5s -webkit-filter ease-in-out;
       transition: .5s -webkit-filter ease-in-out;
     }
@@ -47,20 +46,21 @@
       }
     }
   }
-  @include media-query(1000px) {
+  @include media-query(1300px) {
     li {
+      width: 26%;
+      margin: 2%;
       h2 {
-        top: 5px;
+        top: 25px;
+        width: 80%;
+        left: 10%;
       }
     }
   }
   @include media-query($on-laptop) {
     li {
-      width: 26%;
+      width: 36%;
       margin: 2%;
-      h2 {
-        top: 10px;
-      }
     }
   }
   @include media-query($on-palm) {
@@ -68,6 +68,7 @@
       width: 96%;
       margin: 2%;
       h2 {
+        top: 30%;
         width: 60%;
         left: 20%;
       }
