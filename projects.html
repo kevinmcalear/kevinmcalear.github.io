@@ -7,15 +7,15 @@ permalink: /projects/
 <div id="projects">
   <ul class="project-list">
     {% for project in site.projects reversed %}
-      <li class="project {{project.tags}}" data-sr="move 16px scale up 20%, over 2s">
-        <a href="{{ project.url | prepend: site.baseurl }}">
+      <li data-contenttype="ajax" data-href="{{ project.url | prepend: site.baseurl }}" class="project {{project.tags}}" data-sr="move 16px scale up 20%, over 2s">
+        <a>
           <img src="/assets/pics/projects/{{ project.main_pic}}">
-          <a class="project-link" href="{{ project.url | prepend: site.baseurl }}">
+          <a class="project-link">
             <h2>{{ project.title }}</h2>
           </a>
-          <!-- <span class="project-meta">{{ project.date | date: "%b %-d, %Y" }}</span> -->
+          <span class="project-meta">{{ project.date | date: "%b %-d, %Y" }}</span>
         </a>
       </li>
     {% endfor %}
-  </ul>
+   </ul>
 </div>
