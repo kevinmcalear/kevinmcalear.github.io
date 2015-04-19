@@ -46,24 +46,21 @@ canvas {
     cursor: pointer;
 
     &:hover {
-        > svg path {
+        > svg circle {
 
-            fill: rgba(32, 44, 69, 0.73);
+            fill: rgb(179, 0, 0);
         }
     }
     > svg {
 
-        width: 83px;
-        height: 33px;
-
-        path {
+        width: 75px;
+        height: 30px;
+        circle {
             -webkit-transition: all 1s ease-in-out;
             -moz-transition: all 1s ease-in-out;
             -o-transition: all 1s ease-in-out;
             transition: all 1s ease-in-out;
-            fill: $grey-color-dark;
             fill: #202C45;
-
         }
     }
 }
