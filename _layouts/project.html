@@ -7,7 +7,7 @@
 
   <article class="project-content">
     {{ content }}
-    {% if page.project_link || page.code_link || page.presentation_link || page.website_link %}
+    {% if page.project_link or page.code_link or page.presentation_link or page.website_link %}
     <div class="project-links">
       {% if page.website_link %}
       <p class="col-3">
@@ -24,7 +24,7 @@
         <a href="{{page.code_link}}" target="_blank"><i class="fa fa-github"></i>&nbsp; The Code</a>
       </p>
       {% endif %}
-      {% if page.video_link %}
+      {% if page.presentation_link %}
       <p class="col-3">
         <a href="{{page.presentation_link}}" target="_blank"><i class="fa fa-bullhorn"></i>&nbsp; The Presentation</a>
       </p>
