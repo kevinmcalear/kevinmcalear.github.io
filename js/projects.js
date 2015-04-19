@@ -1,5 +1,5 @@
 // Scroll Reveal stuff for songs
-window.sr = new scrollReveal();
+// window.sr = new scrollReveal();
 
 
 var wall = $('#projects').GITheWall({
@@ -18,7 +18,7 @@ var wall = $('#projects').GITheWall({
     bottom: 10
   },
   scrollerElm: null,
-  scrollOffset: 150,
+  // scrollOffset: 150,
   // settings
   arrows: true,
   closebutton: true,

@@ -7,10 +7,11 @@
     position: relative;
     width: 16.5%;
     margin: 1%;
-    -webkit-transition: 1s all ease-in;
-    -moz-transition: 1s all ease-in;
-    -o-transition: 1s all ease-in;
-    transition: 1s all ease-in;
+    cursor: pointer;
+    // -webkit-transition: .3s all ease-in;
+    // -moz-transition: .3s all ease-in;
+    // -o-transition: .3s all ease-in;
+    // transition: .3s all ease-in;
     a {
       color: white;
     }
