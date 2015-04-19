@@ -170,11 +170,11 @@ Chart.defaults.global.pointLabelFontSize = 20;
                       latitude: 36.3167,
                       longitude: -119.3000
                   },
-                  // options: {
-                  //   strokeWidth: 1,
-                  //   // strokeColor: 'rgba(100, 10, 200, 0.4)',
-                  //   greatArc: true
-                  // }
+                  options: {
+                    strokeWidth: 1,
+                    // strokeColor: 'rgba(100, 10, 200, 0.4)',
+                    greatArc: true
+                  }
               },
               {
                   origin: {
@@ -186,16 +186,16 @@ Chart.defaults.global.pointLabelFontSize = 20;
                       longitude: -73.9903
                   }
               },
-              // {
-              //     origin: {
-              //         latitude: 40.6928,
-              //         longitude: -73.9903
-              //     },
-              //     destination: {
-              //         latitude: 47.6097,
-              //         longitude: -122.3331
-              //     }
-              // }
+              {
+                  origin: {
+                      latitude: 40.6928,
+                      longitude: -73.9903
+                  },
+                  destination: {
+                      latitude: 47.6097,
+                      longitude: -122.3331
+                  }
+              }
             ];
 
             // Add arcs in order
@@ -215,7 +215,7 @@ Chart.defaults.global.pointLabelFontSize = 20;
              {name: 'Germany', latitude: 48.7833, longitude: 9.1833, radius: 2, fillKey: 'travelColor'},
              {name: 'California', latitude: 36.3167, longitude: -119.3000, radius: 2, fillKey: 'travelColor'},
              {name: 'New York City', latitude: 40.6928, longitude: -73.9903, radius: 2, fillKey: 'travelColor'},
-             // {name: 'Seattle', latitude: 47.6097, longitude: -122.3331, radius: 2, fillKey: 'travelColor'},
+             {name: 'Seattle', latitude: 47.6097, longitude: -122.3331, radius: 2, fillKey: 'travelColor'},
               ], {
                popupTemplate: function(geo, data) {
                  return "<div class='hoverinfo tooltip'>" + data.name + "";
