@@ -28,9 +28,9 @@ var wall = $('#projects').GITheWall({
   responsive: true,
   initialWrapperHeight: 600,
   dynamicHeight: true,
-  nextButtonClass: '',
-  prevButtonClass: '',
-  closeButtonClass: ''
+  nextButtonClass: 'fa fa-angle-right',
+  prevButtonClass: 'fa fa-angle-left',
+  closeButtonClass: 'fa fa-times'
 });
 
 
