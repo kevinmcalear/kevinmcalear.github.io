@@ -93,7 +93,7 @@
   overflow: hidden;
   background: #202C45;
   -webkit-transition: background-color 0.3s;
-  transition: background-color 0.3s;
+  transition: all 0.6s;
 }
 .button--nanuk.button--inverted {
   background: #fff;
@@ -105,14 +105,15 @@
 }
 .button--nanuk:hover {
   background-color: #202C45;
+  color: #fff;
 }
 .button--nanuk:hover > span:nth-child(odd) {
   -webkit-animation: anim-nanuk-1 0.5s forwards;
   animation: anim-nanuk-1 0.5s forwards;
 }
 .button--nanuk:hover > span:nth-child(even) {
-  -webkit-animation: anim-nanuk-2 0.5s forwards;
-  animation: anim-nanuk-2 0.5s forwards;
+  -webkit-animation: anim-nanuk-2 0.4s forwards;
+  animation: anim-nanuk-2 0.4s forwards;
 }
 .button--nanuk:hover > span:nth-child(odd),
 .button--nanuk:hover > span:nth-child(even) {
