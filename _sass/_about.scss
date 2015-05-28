@@ -25,6 +25,12 @@
     width: 27%;
   }
 
+  .col-4 {
+    margin: 0%;
+    width: 25%;
+    display: inline-block;
+  }
+
   .datamaps-hoverover {
     .hoverinfo.tooltip {
       border-radius: 5px;
@@ -34,8 +40,16 @@
     }
   }
 
+  @include media-query(900px) {
+    .col-4 {
+        margin: 3%;
+        width: 44%;
+    }
+  }
+
   @include media-query($on-palm) {
-    .col-3 {
+    .col-3,
+    .col-4 {
         margin: 7.5%;
         width: 85%;
         display: block;
