@@ -4,12 +4,12 @@
  *
  * Licensed under the MIT license.
  * http://www.opensource.org/licenses/mit-license.php
- * 
+ *
  * Copyright 2013, Codrops
  * http://www.codrops.com
  */
 (function() {
-	
+
 	function scrollY() {
 		return window.pageYOffset || docElem.scrollTop;
 	}
@@ -41,7 +41,8 @@
 		var showMenu = document.getElementById( 'showMenu' ),
 			perspectiveWrapper = document.getElementById( 'perspective' ),
 			container = perspectiveWrapper.querySelector( '.container' ),
-			contentWrapper = container.querySelector( '.wrapper' );
+			contentWrapper = container.querySelector( '.wrapper' ),
+			footer = document.getElementsByTagName('footer')[0];
 
 		showMenu.addEventListener( clickevent, function( ev ) {
 			ev.stopPropagation();
@@ -55,6 +56,15 @@
 			classie.add( perspectiveWrapper, 'modalview' );
 			// animate..
 			setTimeout( function() { classie.add( perspectiveWrapper, 'animate' ); }, 25 );
+			// remove footer
+			setTimeout( function() { footer.style.visibility = 'hidden'; }, 25 );
+			// unstyle songs
+			songs = document.getElementById('music');
+			if (songs) {
+				for (var i = 0; i <= songs.children.length; i++) {
+					songs.children[i].style.position = 'inherit';
+				};
+			};
 		});
 
 		container.addEventListener( clickevent, function( ev ) {
@@ -67,6 +77,7 @@
 					document.body.scrollTop = document.documentElement.scrollTop = docscroll;
 					// change top of contentWrapper
 					contentWrapper.style.top = '0px';
+
 				};
 				if( support ) {
 					perspectiveWrapper.addEventListener( transEndEventName, onEndTransFn );
@@ -75,6 +86,14 @@
 					onEndTransFn.call();
 				}
 				classie.remove( perspectiveWrapper, 'animate' );
+				// add in footer
+				setTimeout( function() { footer.style.visibility = 'visible'; }, 300 );
+				// restyle songs
+				if (songs) {
+					for (var i = 0; i <= songs.children.length; i++) {
+						songs.children[i].style.position = 'relative';
+					};
+				};
 			}
 		});
 

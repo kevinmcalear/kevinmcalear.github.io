@@ -77,7 +77,7 @@ html, body, .perspective {
 
 .animate .container::after {
 	opacity: 1;
-	height: 101%;
+	height: 100%;
 	-webkit-transition: opacity 0.3s;
 	transition: opacity 0.3s;
 }
