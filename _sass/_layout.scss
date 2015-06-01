@@ -29,37 +29,21 @@ canvas {
     border-radius: 50%;
     margin: 10px;
     vertical-align: top;
-    @include media-query($on-palm) {
-    display: none !important;
-  }
 }
 
 .menu-icon {
     display: block;
     float: right;
-    height: 56px;
-    line-height: 70px;
+    color: #202C45;
+    line-height: 57px;
     text-align: center;
     cursor: pointer;
-
-    &:hover {
-        > svg circle {
-
-            fill: rgb(179, 0, 0);
-        }
-    }
-    > svg {
-
-        width: 75px;
-        height: 30px;
-        circle {
-            -webkit-transition: all 1s ease-in-out;
-            -moz-transition: all 1s ease-in-out;
-            -o-transition: all 1s ease-in-out;
-            transition: all 1s ease-in-out;
-            fill: #202C45;
-        }
-    }
+    -webkit-transition: all 1s ease-in-out;
+    -moz-transition: all 1s ease-in-out;
+    -o-transition: all 1s ease-in-out;
+    transition: all 1s ease-in-out;
+    // Hover Red
+    &:hover {color: rgb(179, 0, 0);}
 }
 
 
@@ -164,17 +148,37 @@ canvas {
 
 /**
  * Site footer
- */
+ **/
 .site-footer {
     padding: 20px $spacing-unit;
     background-color: #ebebeb;
-    background: linear-gradient(#FFF, #ebebeb);
-}
+    background: linear-gradient(#FFF, #F4F4F4);
 
-.contact-list,
-.social-media-list {
-    list-style: none;
-    margin-left: 0;
+    #email-me {
+        i {
+            display: block;
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+    }
+
+    #description {
+        border-left: 1px solid #E4E4E4;
+        border-right: 1px solid #E4E4E4;
+    }
+
+    #social-links {
+        li {width: 150px;}
+    }
+
+    i {
+        font-size: 28px;
+        margin-right: 10px;
+        vertical-align: middle;
+        color: #5A5D66;
+    }
+
+    a {font-weight: 400;}
 }
 
 .footer-col-wrapper {
@@ -184,29 +188,48 @@ canvas {
 }
 
 .footer-col {
-      width: 33%;
-      display: inline-block;
-      vertical-align: middle;
-      text-align: center;
+    width: 33%;
+    display: inline-block;
+    vertical-align: middle;
+    text-align: center;
+    box-sizing:border-box;
+    -moz-box-sizing:border-box;
+    -webkit-box-sizing:border-box;
+
     .text {
         width: 90%;
         display: inline-block;
     }
+
+    ul {
+        list-style: none;
+        margin-left: 0px;
+        li {
+            margin-bottom: 5px;
+            display: inline-block;
+        }
+    }
+
 }
 
-// @include media-query(min-width: 640px) {
-//     .site-footer {
-//         padding: 20px;
-//     }
-//     .footer-col {
-//         width: 100%;
-//         display: block;
-//         text-align: center;
-//     }
-//     .footer-col:nth-child(0n+2) {
-//         display: none;
-//     }
-// }
+// Footer Media Query for Phones
+@include media-query(720px) {
+    .site-footer {
+        padding: 30px;
+    }
+    .footer-col {
+        width: 100%;
+        display: block;
+        text-align: center;
+    }
+    #description {
+        display: none;
+    }
+    #email-me {
+        margin-bottom: 50px;
+        border-bottom: 1px solid #EAEAEA;
+    }
+}
 
 /**
  * Page content
