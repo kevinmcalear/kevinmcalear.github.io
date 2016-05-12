@@ -2,8 +2,6 @@
  * Site header
  */
 .site-header {
-    // border-top: 5px solid $grey-color-dark;
-    // border-bottom: 1px solid $grey-color-light;
     min-height: 56px;
     padding-right: $spacing-unit;
     padding-left: $spacing-unit;
@@ -27,42 +25,25 @@ canvas {
 }
 
 .small-circle {
-    height: 40px;
+    height: 50px;
     border-radius: 50%;
-    margin: 9px;
+    margin: 10px;
     vertical-align: top;
-    @include media-query($on-palm) {
-    display: none !important;
-  }
 }
 
 .menu-icon {
     display: block;
     float: right;
-    // width: 56px;
-    height: 56px;
-    line-height: 70px;
+    color: #202C45;
+    line-height: 57px;
     text-align: center;
     cursor: pointer;
-
-    &:hover {
-        > svg circle {
-
-            fill: rgb(179, 0, 0);
-        }
-    }
-    > svg {
-
-        width: 75px;
-        height: 30px;
-        circle {
-            -webkit-transition: all 1s ease-in-out;
-            -moz-transition: all 1s ease-in-out;
-            -o-transition: all 1s ease-in-out;
-            transition: all 1s ease-in-out;
-            fill: #202C45;
-        }
-    }
+    -webkit-transition: all 1s ease-in-out;
+    -moz-transition: all 1s ease-in-out;
+    -o-transition: all 1s ease-in-out;
+    transition: all 1s ease-in-out;
+    // Hover Red
+    &:hover {color: rgb(179, 0, 0);}
 }
 
 
@@ -167,82 +148,88 @@ canvas {
 
 /**
  * Site footer
- */
+ **/
 .site-footer {
-    border-top: 1px solid $grey-color-light;
-    padding: 0;
-    padding-top: 20px;
-    padding-right: $spacing-unit;
-    padding-left: $spacing-unit;
-    background: #ebebeb;
-}
+    padding: 20px $spacing-unit;
+    background-color: #ebebeb;
+    background: linear-gradient(#FFF, #F4F4F4);
 
-.footer-heading {
-    font-size: 18px;
-    margin-bottom: $spacing-unit / 2;
-}
+    #email-me {
+        i {
+            display: block;
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+    }
 
-.contact-list,
-.social-media-list {
-    list-style: none;
-    margin-left: 0;
+    #description {
+        border-left: 1px solid #E4E4E4;
+        border-right: 1px solid #E4E4E4;
+    }
+
+    #social-links {
+        li {width: 150px;}
+    }
+
+    i {
+        font-size: 28px;
+        margin-right: 10px;
+        vertical-align: middle;
+        color: #5A5D66;
+    }
+
+    a {font-weight: 400;}
 }
 
 .footer-col-wrapper {
     font-size: 15px;
     color: $grey-color;
-    margin-left: -$spacing-unit / 2;
     @extend %clearfix;
 }
 
 .footer-col {
-    float: left;
-    margin-bottom: $spacing-unit / 2;
-    padding-left: $spacing-unit / 2;
+    width: 33%;
+    display: inline-block;
+    vertical-align: middle;
+    text-align: center;
+    box-sizing:border-box;
+    -moz-box-sizing:border-box;
+    -webkit-box-sizing:border-box;
+
     .text {
-        width: 89%;
+        width: 90%;
         display: inline-block;
-        margin-left: 1%;
-    }
-}
-
-.footer-col-1 {
-    width: -webkit-calc(35% - (#{$spacing-unit} / 2));
-    width:         calc(35% - (#{$spacing-unit} / 2));
-}
-
-.footer-col-2 {
-    width: -webkit-calc(20% - (#{$spacing-unit} / 2));
-    width:         calc(20% - (#{$spacing-unit} / 2));
-}
-
-.footer-col-3 {
-    width: -webkit-calc(45% - (#{$spacing-unit} / 2));
-    width:         calc(45% - (#{$spacing-unit} / 2));
-}
-
-@include media-query($on-laptop) {
-    .footer-col-1,
-    .footer-col-2 {
-        width: -webkit-calc(50% - (#{$spacing-unit} / 2));
-        width:         calc(50% - (#{$spacing-unit} / 2));
     }
 
-    .footer-col-3 {
-        width: -webkit-calc(100% - (#{$spacing-unit} / 2));
-        width:         calc(100% - (#{$spacing-unit} / 2));
+    ul {
+        list-style: none;
+        margin-left: 0px;
+        li {
+            margin-bottom: 5px;
+            display: inline-block;
+        }
     }
+
 }
 
-@include media-query($on-palm) {
+// Footer Media Query for Phones
+@include media-query(720px) {
+    .site-footer {
+        padding: 30px;
+    }
     .footer-col {
-        float: none;
-        width: -webkit-calc(100% - (#{$spacing-unit} / 2));
-        width:         calc(100% - (#{$spacing-unit} / 2));
+        width: 100%;
+        display: block;
+        text-align: center;
+    }
+    #description {
+        display: none;
+    }
+    #email-me {
+        margin-bottom: 50px;
+        border-bottom: 1px solid #EAEAEA;
     }
 }
-
-
 
 /**
  * Page content
