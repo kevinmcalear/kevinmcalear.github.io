@@ -1,23 +1,38 @@
 <!DOCTYPE html>
 <html>
-
   {% include head.html %}
 
   <body>
-
-
     <div id="perspective" class="perspective effect-moveleft">
       <div class="container">
-        <div class="wrapper"><!-- wrapper needed for scroll -->
+        <div class="wrapper">
+          <!-- wrapper needed for scroll -->
           {% include header.html %}
           {{ content }}
           {% include footer.html %}
         </div>
       </div>
     </div>
-    {% include menu.html %}
-
-    {% include scripts.html %}
+    {% include menu.html %} {% include scripts.html %}
+    <!-- Calendly badge widget begin -->
+    <link
+      href="https://assets.calendly.com/assets/external/widget.css"
+      rel="stylesheet"
+    />
+    <script
+      src="https://assets.calendly.com/assets/external/widget.js"
+      type="text/javascript"
+    ></script>
+    <script type="text/javascript">
+      Calendly.initBadgeWidget({
+        url:
+          "https://calendly.com/kevinmcalear/video-chat?background_color=424242&text_color=e2e2e2&primary_color=765fd2",
+        text: "Schedule time with me",
+        color: "#494949",
+        textColor: "#f3f3f3",
+        branding: false
+      });
+    </script>
+    <!-- Calendly badge widget end -->
   </body>
-
 </html>
